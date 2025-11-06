@@ -16,7 +16,7 @@ import picocli.CommandLine;
         scope = CommandLine.ScopeType.INHERIT,
         mixinStandardHelpOptions = true)
 public class Root implements Runnable{
-    @CommandLine.Parameters(index = "0", description = "Port on wich the Server / Client will be run.")
+    @CommandLine.Parameters(index = "0", description = "Port on wich the Server will be run / connected.")
     protected  int  port;
 
     public void run() {
