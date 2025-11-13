@@ -26,8 +26,8 @@ public class Server implements Runnable {
     public static String END_OF_LINE = "\n";
 
     public void run(){
-        try (ServerSocket serverSocket = new ServerSocket(parent.port)) {
-            System.out.println("[Server] Listening on port " + parent.port );
+        try (ServerSocket serverSocket = new ServerSocket(parent.getPort());) {
+            System.out.println("[Server] Listening on port " + parent.getPort() );
 
             while (!serverSocket.isClosed()) {
                 try (Socket socket = serverSocket.accept();
@@ -109,7 +109,7 @@ public class Server implements Runnable {
             System.out.println("[Server] IO exception: " + e);
         }
 
-        System.out.println("Server started on port: " + parent);
+        System.out.println("Server started on port: " + parent.getPort());
 
     }
 }
