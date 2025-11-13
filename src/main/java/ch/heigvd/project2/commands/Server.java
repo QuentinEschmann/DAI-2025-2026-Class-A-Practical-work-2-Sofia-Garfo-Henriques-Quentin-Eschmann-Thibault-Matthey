@@ -15,15 +15,20 @@ public class Server implements Runnable {
 
     // Constants for messages
     public enum ClientCommand {
-        HELLO,
+        ADD,
+        REMOVE,
+        LIST,
+        MODIFY,
+        MANAGE,
+        RESERVE
     }
+    public static String END_OF_LINE = "\n";
+
 
     public enum ServerCommand {
-        HI,
+        OK,
         INVALID
     }
-
-    public static String END_OF_LINE = "\n";
 
     public void run(){
         try (ServerSocket serverSocket = new ServerSocket(parent.getPort());) {
@@ -69,23 +74,82 @@ public class Server implements Runnable {
 
                         // Handle request from client
                         switch (command) {
-                            case HELLO -> {
-                                if (clientRequestParts.length < 2) {
-                                    System.out.println(
-                                            "[Server] " + command + " command received without <name> parameter. Replying with "
-                                                    + ServerCommand.INVALID
-                                                    + ".");
-                                    response = ServerCommand.INVALID + " Missing <name> parameter. Please try again.";
+                            case ADD -> {
+                                if(clientRequestParts.length < 2){
+                                        System.out.println(
+                                            "[Server] " + command + " command received without <item> parameter. Replying with "
+                                            + ServerCommand.INVALID
+                                            + ".");
+                                    response = ServerCommand.INVALID + " Missing <item> parameter. Please try again.";
                                     break;
                                 }
 
-                                String name = clientRequestParts[1];
-
-                                System.out.println("[Server] Received HELLO command with name: " + name);
-                                System.out.println("[Server] Replying with HI command");
-
-                                response = ServerCommand.HI + " Hi, " + name + "!";
+                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                response = ServerCommand.OK.name();
                             }
+
+                            case REMOVE -> {
+                                if(clientRequestParts.length < 2){
+                                        System.out.println(
+                                            "[Server] " + command + " command received without <item> parameter. Replying with "
+                                            + ServerCommand.INVALID
+                                            + ".");
+                                    response = ServerCommand.INVALID + " Missing <item> parameter. Please try again.";
+                                    break;
+                                }
+
+                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                response = ServerCommand.OK.name();
+                            }
+
+                            case LIST -> {
+                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+
+                                response = ServerCommand.OK.name();
+                            }
+
+                            case MODIFY -> {
+                                if(clientRequestParts.length < 3){
+                                        System.out.println(
+                                            "[Server] " + command + " command received without <oldName> or <newName> parameters. Replying with "
+                                            + ServerCommand.INVALID
+                                            + ".");
+                                    response = ServerCommand.INVALID + " Missing <oldname> or <newName> parameter. Please try again.";
+                                    break;
+                                }
+
+                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                response = ServerCommand.OK.name();
+                            }
+
+                            case MANAGE -> {
+                                if(clientRequestParts.length < 3){
+                                        System.out.println(
+                                            "[Server] " + command + " command received without <item> or <ammount> parameter. Replying with "
+                                            + ServerCommand.INVALID
+                                            + ".");
+                                    response = ServerCommand.INVALID + " Missing <item> or <ammount> parameter. Please try again.";
+                                    break;
+                                }
+
+                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                response = ServerCommand.OK.name();
+                            }
+
+                            case RESERVE -> {
+                                if(clientRequestParts.length < 3){
+                                        System.out.println(
+                                            "[Server] " + command + " command received without <item> or <ammount> parameter. Replying with "
+                                            + ServerCommand.INVALID
+                                            + ".");
+                                    response = ServerCommand.INVALID + " Missing <item> or <ammount> parameter. Please try again.";
+                                    break;
+                                }
+
+                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                response = ServerCommand.OK.name();
+                            } 
+
                             case null, default -> {
                                 System.out.println(
                                         "[Server] Unknown command sent by client, reply with "

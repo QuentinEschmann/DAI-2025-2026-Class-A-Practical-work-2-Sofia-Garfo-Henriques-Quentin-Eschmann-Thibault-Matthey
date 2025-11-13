@@ -16,14 +16,27 @@ import picocli.CommandLine;
         scope = CommandLine.ScopeType.INHERIT,
         mixinStandardHelpOptions = true)
 public class Root implements Runnable{
-    @CommandLine.Parameters(index = "0", description = "Port on wich the Server will be run / connected.")
-    protected  int  port;
+    @CommandLine.Option(
+        names = {"--port", "-p"},
+        description = "Port used during the communication.",
+        required = false,
+        defaultValue = "7580"
+    )
+    protected  String  port;
+
+    @CommandLine.Option(
+        names = {"--host"},
+        description = "IP of the server that you want to connect to",
+        required = false,
+        defaultValue = "localhost"
+    )
+    protected String host;
 
     public void run() {
         System.out.println(port);
     }
 
     protected int getPort(){
-        return port;
+        return Integer.parseInt(port);
     }
 }

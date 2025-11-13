@@ -4,34 +4,33 @@ import picocli.CommandLine;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @CommandLine.Command(name = "Client", description = "Starts server client application.")
 public class Client implements Runnable {
 
     @CommandLine.ParentCommand protected Root parent;
 
-    @CommandLine.Option(
-        names = {"--host"},
-        description = "IP of the server that you want to connect to",
-        required = true
-    )
     protected String HOST = "localhost";
 
     private int PORT = 7580;
     public enum ClientCommand {
-        HELLO,
-        HELLO_WITHOUT_NAME,
-        INVALID,
-        HELP,
-        QUIT
+        ADD,
+        REMOVE,
+        LIST,
+        MODIFY,
+        MANAGE,
+        RESERVE,
+        QUIT,
+        HELP
     }
     public static String END_OF_LINE = "\n";
 
 
-  public enum ServerCommand {
-    HI,
-    INVALID
-  }
+    public enum ServerCommand {
+        OK,
+        INVALID
+    }
 
     public void run(){
         this.PORT = parent.getPort();
@@ -71,20 +70,40 @@ public class Client implements Runnable {
             String request = null;
 
             switch (command) {
-                case HELLO -> {
-                String name = userInputParts[1];
+                case ADD -> {
+                    String name = userInputParts[1];
 
-                request = ClientCommand.HELLO + " " + name;
+                    request = ClientCommand.ADD + " " + name;
                 }
-                case HELLO_WITHOUT_NAME -> {
-                request = ClientCommand.HELLO.name();
+                case REMOVE -> {
+                    String name = userInputParts[1];
+
+                    request = ClientCommand.REMOVE + " " + name;
                 }
-                case INVALID -> {
-                request = ClientCommand.INVALID.name();
+                case LIST -> {
+                    request = ClientCommand.LIST.name();
+                }
+                case MODIFY -> {
+                    String oldName = userInputParts[1];
+                    String newName = userInputParts[2];
+
+                    request = ClientCommand.MODIFY + " " + oldName + " " + newName;
+                }
+                case MANAGE -> {
+                    String name = userInputParts[1];
+                    int quant = Integer.parseInt(userInputParts[2]);
+
+                    request = ClientCommand.MANAGE + " " + name + " " + quant;
+                }
+                case RESERVE -> {
+                    String name = userInputParts[1];
+                    int quant = Integer.parseInt(userInputParts[2]);
+
+                    request = ClientCommand.RESERVE + " " + name + " " + quant;
                 }
                 case QUIT -> {
-                socket.close();
-                continue;
+                    socket.close();
+                    continue;
                 }
                 case HELP -> help();
             }
@@ -120,7 +139,7 @@ public class Client implements Runnable {
 
             // Handle response from server
             switch (message) {
-            case HI -> {
+            case OK -> {
                 // As we know from the server implementation, the message is always the second part
                 String helloMessage = serverResponseParts[1];
                 System.out.println(helloMessage);
@@ -148,9 +167,12 @@ public class Client implements Runnable {
 
   private static void help() {
     System.out.println("Usage:");
-    System.out.println("  " + ClientCommand.HELLO + " <your name> - Say hello with a name.");
-    System.out.println("  " + ClientCommand.HELLO_WITHOUT_NAME + " - Say hello without a name.");
-    System.out.println("  " + ClientCommand.INVALID + " - Send an invalid command to the server.");
+    System.out.println("  " + ClientCommand.ADD + "<item> - Adds a new item to the inventory.");
+    System.out.println("  " + ClientCommand.REMOVE + "<item> - Removes an item from the inventory.");
+    System.out.println("  " + ClientCommand.LIST + " - Lists all items in the inventory");
+    System.out.println("  " + ClientCommand.MODIFY + "<oldName> <newName> - Changes the name of an item in the inventory.");
+    System.out.println("  " + ClientCommand.MANAGE + "<item> <ammount> - changes the ammount of an item in inventory.");
+    System.out.println("  " + ClientCommand.RESERVE + "<item> <ammount> - Reserves an item in inventory.");
     System.out.println("  " + ClientCommand.QUIT + " - Close the connection to the server.");
     System.out.println("  " + ClientCommand.HELP + " - Display this help message.");
   }
