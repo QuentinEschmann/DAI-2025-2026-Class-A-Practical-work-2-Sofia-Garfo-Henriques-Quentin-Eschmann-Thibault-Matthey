@@ -15,9 +15,9 @@ public class Client implements Runnable {
         description = "IP of the server that you want to connect to",
         required = true
     )
-    protected String HOST;
+    protected String HOST = "localhost";
 
-    private int PORT = 0;
+    private int PORT = 7580;
     public enum ClientCommand {
         HELLO,
         HELLO_WITHOUT_NAME,
