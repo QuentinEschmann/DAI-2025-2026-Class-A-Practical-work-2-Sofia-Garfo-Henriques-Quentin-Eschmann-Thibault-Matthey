@@ -60,7 +60,7 @@ public class Server implements Runnable {
                         }
 
                         // Split user input to parse command (also known as message)
-                        String[] clientRequestParts = clientRequest.split(" ", 2);
+                        String[] clientRequestParts = clientRequest.split(" ", 4);
 
                         ClientCommand command = null;
                         try {
@@ -84,8 +84,9 @@ public class Server implements Runnable {
                                     break;
                                 }
 
-                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                System.out.println("[SERVER] Client used "+ command + " command");
                                 response = ServerCommand.OK.name();
+                                break;
                             }
 
                             case REMOVE -> {
@@ -98,14 +99,16 @@ public class Server implements Runnable {
                                     break;
                                 }
 
-                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                System.out.println("[SERVER] Client used "+ command + " command");
                                 response = ServerCommand.OK.name();
+                                break;
                             }
 
                             case LIST -> {
-                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                System.out.println("[SERVER] Client used "+ command + " command");
 
                                 response = ServerCommand.OK.name();
+                                break;
                             }
 
                             case MODIFY -> {
@@ -118,8 +121,9 @@ public class Server implements Runnable {
                                     break;
                                 }
 
-                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                System.out.println("[SERVER] Client used "+ command + " command");
                                 response = ServerCommand.OK.name();
+                                break;
                             }
 
                             case MANAGE -> {
@@ -132,8 +136,9 @@ public class Server implements Runnable {
                                     break;
                                 }
 
-                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                System.out.println("[SERVER] Client used "+ command + " command");
                                 response = ServerCommand.OK.name();
+                                break;
                             }
 
                             case RESERVE -> {
@@ -146,8 +151,9 @@ public class Server implements Runnable {
                                     break;
                                 }
 
-                                System.out.println("[SERVER] Client used "+ clientRequestParts + " command");
+                                System.out.println("[SERVER] Client used "+ command + " command");
                                 response = ServerCommand.OK.name();
+                                break;
                             } 
 
                             case null, default -> {

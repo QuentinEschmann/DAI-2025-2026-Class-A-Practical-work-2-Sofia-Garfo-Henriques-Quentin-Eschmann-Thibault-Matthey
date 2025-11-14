@@ -62,108 +62,116 @@ public class Client implements Runnable {
             String userInput = bsir.readLine();
 
             try {
-            // Split user input to parse command (also known as message)
-            String[] userInputParts = userInput.split(" ", 2);
-            ClientCommand command = ClientCommand.valueOf(userInputParts[0].toUpperCase());
+                // Split user input to parse command (also known as message)
+                String[] userInputParts = userInput.split(" ", 4);
+                ClientCommand command = ClientCommand.valueOf(userInputParts[0].toUpperCase());
 
-            // Prepare request
-            String request = null;
+                // Prepare request
+                String request = null;
 
-            switch (command) {
-                case ADD -> {
-                    String name = userInputParts[1];
+                switch (command) {
+                    case ADD -> {
+                        String name = userInputParts[1];
 
-                    request = ClientCommand.ADD + " " + name;
+                        request = ClientCommand.ADD + " " + name;
+                        break;
+                    }
+                    case REMOVE -> {
+                        String name = userInputParts[1];
+
+                        request = ClientCommand.REMOVE + " " + name;
+                        break;
+                    }
+                    case LIST -> {
+                        request = ClientCommand.LIST.name();
+                        break;
+                    }
+                    case MODIFY -> {
+                        String oldName = userInputParts[1];
+                        String newName = userInputParts[2];
+
+                        request = ClientCommand.MODIFY + " " + oldName + " " + newName;
+                        break;
+                    }
+                    case MANAGE -> {
+                        String name = userInputParts[1];
+                        int quant = Integer.parseInt(userInputParts[2]);
+
+                        request = ClientCommand.MANAGE + " " + name + " " + quant;
+                        break;
+                    }
+                    case RESERVE -> {
+                        String name = userInputParts[1];
+                        int quant = Integer.parseInt(userInputParts[2]);
+
+                        request = ClientCommand.RESERVE + " " + name + " " + quant;
+                        break;
+                    }
+                    case QUIT -> {
+                        socket.close();
+                        continue;
+                    }
+                    case HELP -> help();
                 }
-                case REMOVE -> {
-                    String name = userInputParts[1];
 
-                    request = ClientCommand.REMOVE + " " + name;
+                if (request != null) {
+                    // Send request to server
+                    out.write(request + END_OF_LINE);
+                    out.flush();
                 }
-                case LIST -> {
-                    request = ClientCommand.LIST.name();
+                } catch (Exception e) {
+                    System.out.println("Invalid command. Please try again.");
+                    continue;
                 }
-                case MODIFY -> {
-                    String oldName = userInputParts[1];
-                    String newName = userInputParts[2];
 
-                    request = ClientCommand.MODIFY + " " + oldName + " " + newName;
-                }
-                case MANAGE -> {
-                    String name = userInputParts[1];
-                    int quant = Integer.parseInt(userInputParts[2]);
+                // Read response from server and parse it
+                String serverResponse = in.readLine();
 
-                    request = ClientCommand.MANAGE + " " + name + " " + quant;
-                }
-                case RESERVE -> {
-                    String name = userInputParts[1];
-                    int quant = Integer.parseInt(userInputParts[2]);
-
-                    request = ClientCommand.RESERVE + " " + name + " " + quant;
-                }
-                case QUIT -> {
+                // If serverResponse is null, the server has disconnected
+                if (serverResponse == null) {
                     socket.close();
                     continue;
                 }
-                case HELP -> help();
-            }
 
-            if (request != null) {
-                // Send request to server
-                out.write(request + END_OF_LINE);
-                out.flush();
-            }
-            } catch (Exception e) {
-            System.out.println("Invalid command. Please try again.");
-            continue;
-            }
+                // Split response to parse message (also known as command)
+                String[] serverResponseParts = serverResponse.split(" ", 2);
 
-            // Read response from server and parse it
-            String serverResponse = in.readLine();
-
-            // If serverResponse is null, the server has disconnected
-            if (serverResponse == null) {
-            socket.close();
-            continue;
-            }
-
-            // Split response to parse message (also known as command)
-            String[] serverResponseParts = serverResponse.split(" ", 2);
-
-            ServerCommand message = null;
-            try {
-            message = ServerCommand.valueOf(serverResponseParts[0]);
-            } catch (IllegalArgumentException e) {
-            // Do nothing
-            }
-
-            // Handle response from server
-            switch (message) {
-            case OK -> {
-                // As we know from the server implementation, the message is always the second part
-                String helloMessage = serverResponseParts[1];
-                System.out.println(helloMessage);
-            }
-
-            case INVALID -> {
-                if (serverResponseParts.length < 2) {
-                System.out.println("Invalid message. Please try again.");
-                break;
+                ServerCommand message = null;
+                try {
+                    message = ServerCommand.valueOf(serverResponseParts[0]);
+                } catch (IllegalArgumentException e) {
+                    // Do nothing
                 }
 
-                String invalidMessage = serverResponseParts[1];
-                System.out.println(invalidMessage);
-            }
-            case null, default ->
-                System.out.println("Invalid/unknown command sent by server, ignore.");
-            }
-        }
+                // Handle response from server
+                switch (message) {
+                    case OK -> {
+                        // As we know from the server implementation, the message is always the second part
+                        String response = serverResponseParts[0];
+                        System.out.println(response);
+                        break;
+                    }
 
-        System.out.println("[Client] Closing connection and quitting...");
-        } catch (Exception e) {
-        System.out.println("[Client] Exception: " + e);
-        }
-  }
+                    case INVALID -> {
+                        if (serverResponseParts.length < 2) {
+                        System.out.println("Invalid message. Please try again.");
+                        break;
+                        }
+
+                        String invalidMessage = serverResponseParts[1];
+                        System.out.println(invalidMessage);
+                    }
+                    case null, default ->
+                        System.out.println("Invalid/unknown command sent by server, ignore.");
+                    }
+                }
+
+                System.out.println("[Client] Closing connection and quitting...");
+
+            } catch (Exception e) {    
+                System.out.println("[Client] Exception: " + e);
+            }
+    }
 
   private static void help() {
     System.out.println("Usage:");
