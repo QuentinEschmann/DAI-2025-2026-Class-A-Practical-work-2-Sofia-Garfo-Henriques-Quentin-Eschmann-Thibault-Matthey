@@ -87,7 +87,14 @@ public class Client implements Runnable {
                         break;
                     }
                     case LIST -> {
-                        request = ClientCommand.LIST.name();
+                        String item = "all";
+
+                        if(userInputParts.length > 1){
+                            item = userInputParts[1];
+                        }
+                        
+                        request = ClientCommand.LIST + " " + item;
+                        
                         break;
                     }
                     case MODIFY -> {
