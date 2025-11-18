@@ -72,8 +72,12 @@ public class Client implements Runnable {
                 switch (command) {
                     case ADD -> {
                         String name = userInputParts[1];
+                        int ammount = 0;
+                        if(userInputParts.length > 2){
+                            ammount = Integer.parseInt(userInputParts[2]);
+                        }
 
-                        request = ClientCommand.ADD + " " + name;
+                        request = ClientCommand.ADD + " " + name + " " + ammount;
                         break;
                     }
                     case REMOVE -> {
