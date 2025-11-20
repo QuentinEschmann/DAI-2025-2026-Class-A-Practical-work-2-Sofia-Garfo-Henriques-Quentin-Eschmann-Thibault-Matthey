@@ -29,7 +29,8 @@ public class Client implements Runnable {
 
     public enum ServerCommand {
         OK,
-        INVALID
+        INVALID,
+        PRINT
     }
 
     public void run(){
@@ -64,6 +65,7 @@ public class Client implements Runnable {
             try {
                 // Split user input to parse command (also known as message)
                 String[] userInputParts = userInput.split(" ", 4);
+
                 ClientCommand command = ClientCommand.valueOf(userInputParts[0].toUpperCase());
 
                 // Prepare request
@@ -76,7 +78,6 @@ public class Client implements Runnable {
                         if(userInputParts.length > 2){
                             ammount = Integer.parseInt(userInputParts[2]);
                         }
-
                         request = ClientCommand.ADD + " " + name + " " + ammount;
                         break;
                     }
@@ -145,7 +146,7 @@ public class Client implements Runnable {
                 }
 
                 // Split response to parse message (also known as command)
-                String[] serverResponseParts = serverResponse.split(" ", 2);
+                String[] serverResponseParts = serverResponse.split(" ");
 
                 ServerCommand message = null;
                 try {
@@ -172,6 +173,12 @@ public class Client implements Runnable {
                         String invalidMessage = serverResponseParts[1];
                         System.out.println(invalidMessage);
                     }
+
+                    case PRINT -> {
+                        for ( int i = 1; i < serverResponseParts.length; i++ ) {
+                            System.out.println(serverResponseParts[i]);
+                        }
+                    }
                     case null, default ->
                         System.out.println("Invalid/unknown command sent by server, ignore.");
                     }
@@ -188,10 +195,10 @@ public class Client implements Runnable {
     System.out.println("Usage:");
     System.out.println("  " + ClientCommand.ADD + "<item> - Adds a new item to the inventory.");
     System.out.println("  " + ClientCommand.REMOVE + "<item> - Removes an item from the inventory.");
-    System.out.println("  " + ClientCommand.LIST + " - Lists all items in the inventory");
+    System.out.println("  " + ClientCommand.LIST + " [item] - Lists one or all items in the inventory");
     System.out.println("  " + ClientCommand.MODIFY + "<oldName> <newName> - Changes the name of an item in the inventory.");
-    System.out.println("  " + ClientCommand.MANAGE + "<item> <ammount> - changes the ammount of an item in inventory.");
-    System.out.println("  " + ClientCommand.RESERVE + "<item> <ammount> - Reserves an item in inventory.");
+    System.out.println("  " + ClientCommand.MANAGE + "<item> <amount> - changes the ammount of an item in inventory.");
+    System.out.println("  " + ClientCommand.RESERVE + "<item> <amount> - Reserves an item in inventory.");
     System.out.println("  " + ClientCommand.QUIT + " - Close the connection to the server.");
     System.out.println("  " + ClientCommand.HELP + " - Display this help message.");
   }
