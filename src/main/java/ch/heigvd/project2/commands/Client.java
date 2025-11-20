@@ -64,7 +64,7 @@ public class Client implements Runnable {
 
             try {
                 // Split user input to parse command (also known as message)
-                String[] userInputParts = userInput.split(" ", 4);
+                String[] userInputParts = userInput.split(" ");//, 4);
 
                 ClientCommand command = ClientCommand.valueOf(userInputParts[0].toUpperCase());
 
@@ -170,13 +170,18 @@ public class Client implements Runnable {
                         break;
                         }
 
-                        String invalidMessage = serverResponseParts[1];
-                        System.out.println(invalidMessage);
+                        StringBuilder sb = new StringBuilder();
+                        for ( int i = 1; i < serverResponseParts.length; i++ ) {
+                            sb.append(serverResponseParts[i]);
+                        }
                     }
 
+
                     case PRINT -> {
-                        for ( int i = 1; i < serverResponseParts.length; i++ ) {
-                            System.out.println(serverResponseParts[i]);
+                        String[] items =  serverResponse.substring(5).split(",");
+
+                        for(String item : items){
+                            System.out.println(item);
                         }
                     }
                     case null, default ->

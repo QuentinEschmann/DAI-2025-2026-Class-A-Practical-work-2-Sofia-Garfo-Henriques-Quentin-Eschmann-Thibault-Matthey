@@ -6,7 +6,6 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,7 +67,7 @@ public class Server implements Runnable {
                         }
 
                         // Split user input to parse command (also known as message)
-                        String[] clientRequestParts = clientRequest.split(" ", 4);
+                        String[] clientRequestParts = clientRequest.split(" ");
 
                         ClientCommand command = null;
                         try {
@@ -239,7 +238,7 @@ public class Server implements Runnable {
             return  ServerCommand.INVALID.name() + " the inventory is empty";
 
         if(name.equals("all")){
-            StringBuilder sb = new StringBuilder(" Listing:  ");
+            StringBuilder sb = new StringBuilder(" ,Listing:");
             for(Map.Entry<String, Integer> e : db.entrySet() ){
                 sb.append(printItem(e.getKey()));
             }
@@ -292,8 +291,8 @@ public class Server implements Runnable {
     }
 
     private String printItem(String name){
-        return "Item:" + name + " Available:" + db.get(name)
-            + " Reserved:" + reserved.getOrDefault(name, 0) + "  ";
+        return " ,Item:" + name + ",Available:" + db.get(name)
+            + ",Reserved:" + reserved.getOrDefault(name, 0);
     }
 
 
