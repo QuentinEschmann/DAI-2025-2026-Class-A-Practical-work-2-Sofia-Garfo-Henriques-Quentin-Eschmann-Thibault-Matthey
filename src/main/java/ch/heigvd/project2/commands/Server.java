@@ -150,10 +150,6 @@ public class Server implements Runnable {
                                 int amount;
                                 try {
                                     amount = Integer.parseInt(clientRequestParts[2]);
-                                    if (amount < 0) {
-                                        response = ServerCommand.INVALID + " <amount> must be a positive integer or zero.";
-                                        break;
-                                    }
                                 } catch (NumberFormatException e) {
                                     response = ServerCommand.INVALID + " <amount> is not a valid integer.";
                                     break;
@@ -224,11 +220,19 @@ public class Server implements Runnable {
         if(db.containsKey(name)){
             return ServerCommand.INVALID + " item " + name + " already exists in inventory " ;
         }
+
+        if(amount < 0){
+            return ServerCommand.INVALID + " <amount> must be a positive or null integer.";
+        }
+
         db.put(name, amount);
         return ServerCommand.OK.name();
     }
 
     private String remove(String name) {
+        if(!db.containsKey(name)){
+            return ServerCommand.INVALID + " item " + name + " does not exist in inventory " ;
+        }
         db.remove(name);
         return ServerCommand.OK.name();
     }
@@ -245,7 +249,7 @@ public class Server implements Runnable {
             return ServerCommand.PRINT.name() + sb;
         } else {
             if(!db.containsKey(name)){
-                return ServerCommand.INVALID.name() + " item" + name + " does not exist";
+                return ServerCommand.INVALID.name() + " item " + name + " does not exist";
             } else {
                 return ServerCommand.PRINT.name() + printItem(name);
             }
@@ -270,6 +274,9 @@ public class Server implements Runnable {
         if(!db.containsKey(name))
             return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
 
+        if(amount < 0){
+            return ServerCommand.INVALID.name() + " <amount> must be a positive or null integer.";
+        }
         //replaces old value with new one
         db.put(name, amount);
         return ServerCommand.OK.name();
@@ -279,6 +286,14 @@ public class Server implements Runnable {
         //verify if item exists in inventory
         if(!db.containsKey(name)){
             return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
+        }
+
+        if(amount < 0){
+            return ServerCommand.INVALID.name() + " <amount> must be a positive integer.";
+        }
+
+        if(amount > db.get(name)){
+            return ServerCommand.INVALID + " cannot reserve more item than available";
         }
         //remove from inventory
         manage(name, db.get(name)-amount);

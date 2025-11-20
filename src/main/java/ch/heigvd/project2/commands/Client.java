@@ -123,7 +123,10 @@ public class Client implements Runnable {
                         socket.close();
                         continue;
                     }
-                    case HELP -> help();
+                    case HELP -> {
+                        help();
+                        continue;
+                    }
                 }
 
                 if (request != null) {
@@ -132,7 +135,7 @@ public class Client implements Runnable {
                     out.flush();
                 }
                 } catch (Exception e) {
-                    System.out.println("Invalid command. Please try again.");
+                    System.out.println("Invalid command. Use HELP command to see all available commands and try again.");
                     continue;
                 }
 
@@ -165,15 +168,7 @@ public class Client implements Runnable {
                     }
 
                     case INVALID -> {
-                        if (serverResponseParts.length < 2) {
-                        System.out.println("Invalid message. Please try again.");
-                        break;
-                        }
-
-                        StringBuilder sb = new StringBuilder();
-                        for ( int i = 1; i < serverResponseParts.length; i++ ) {
-                            sb.append(serverResponseParts[i]);
-                        }
+                        System.out.println(serverResponse.substring(7));
                     }
 
 
@@ -198,7 +193,7 @@ public class Client implements Runnable {
 
   private static void help() {
     System.out.println("Usage:");
-    System.out.println("  " + ClientCommand.ADD + "<item> - Adds a new item to the inventory.");
+    System.out.println("  " + ClientCommand.ADD + "<item> [amount] - Adds a new item to the inventory.");
     System.out.println("  " + ClientCommand.REMOVE + "<item> - Removes an item from the inventory.");
     System.out.println("  " + ClientCommand.LIST + " [item] - Lists one or all items in the inventory");
     System.out.println("  " + ClientCommand.MODIFY + "<oldName> <newName> - Changes the name of an item in the inventory.");
@@ -206,5 +201,6 @@ public class Client implements Runnable {
     System.out.println("  " + ClientCommand.RESERVE + "<item> <amount> - Reserves an item in inventory.");
     System.out.println("  " + ClientCommand.QUIT + " - Close the connection to the server.");
     System.out.println("  " + ClientCommand.HELP + " - Display this help message.");
+    System.out.println("Note: [args] are optionals.");
   }
 }
