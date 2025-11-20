@@ -6,6 +6,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @CommandLine.Command(name = "Server", description = "Starts server side application.")
@@ -24,6 +26,8 @@ public class Server implements Runnable {
     }
     public static String END_OF_LINE = "\n";
 
+    protected HashMap<String,Integer> db;
+    protected HashMap<String,Integer> reserved;
 
     public enum ServerCommand {
         OK,
@@ -72,6 +76,9 @@ public class Server implements Runnable {
                         // Prepare response
                         String response = null;
 
+                        db = new HashMap<>();
+                        reserved = new HashMap<>();
+
                         // Handle request from client
                         switch (command) {
                             case ADD -> {
@@ -83,9 +90,9 @@ public class Server implements Runnable {
                                     response = ServerCommand.INVALID + " Missing <item> parameter. Please try again.";
                                     break;
                                 }
+                                response = add(clientRequestParts[1]);
 
                                 System.out.println("[SERVER] Client used "+ command + " command");
-                                response = ServerCommand.OK.name();
                                 break;
                             }
 
@@ -99,15 +106,18 @@ public class Server implements Runnable {
                                     break;
                                 }
 
+                                String item = clientRequestParts[1];
+
+                                response = remove(item);
+
                                 System.out.println("[SERVER] Client used "+ command + " command");
-                                response = ServerCommand.OK.name();
                                 break;
                             }
 
                             case LIST -> {
-                                System.out.println("[SERVER] Client used "+ command + " command");
+                                response = list();
 
-                                response = ServerCommand.OK.name();
+                                System.out.println("[SERVER] Client used "+ command + " command");
                                 break;
                             }
 
@@ -121,38 +131,65 @@ public class Server implements Runnable {
                                     break;
                                 }
 
+                                response = modify(clientRequestParts[1], clientRequestParts[2]);
                                 System.out.println("[SERVER] Client used "+ command + " command");
-                                response = ServerCommand.OK.name();
                                 break;
                             }
 
                             case MANAGE -> {
                                 if(clientRequestParts.length < 3){
                                         System.out.println(
-                                            "[Server] " + command + " command received without <item> or <ammount> parameter. Replying with "
+                                            "[Server] " + command + " command received without <item> or <amount> parameter. Replying with "
                                             + ServerCommand.INVALID
                                             + ".");
-                                    response = ServerCommand.INVALID + " Missing <item> or <ammount> parameter. Please try again.";
+                                    response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
                                     break;
                                 }
 
+                                String item = clientRequestParts[1];
+                                int amount;
+                                try {
+                                    amount = Integer.parseInt(clientRequestParts[2]);
+                                    if (amount <= 0) {
+                                        response = ServerCommand.INVALID + " <amount> must be a positive integer.";
+                                        break;
+                                    }
+                                } catch (NumberFormatException e) {
+                                    response = ServerCommand.INVALID + " <amount> is not a valid integer.";
+                                    break;
+                                }
+
+                                response = manage(item, amount);
                                 System.out.println("[SERVER] Client used "+ command + " command");
-                                response = ServerCommand.OK.name();
                                 break;
                             }
 
                             case RESERVE -> {
                                 if(clientRequestParts.length < 3){
                                         System.out.println(
-                                            "[Server] " + command + " command received without <item> or <ammount> parameter. Replying with "
+                                            "[Server] " + command + " command received without <item> or <amount> parameter. Replying with "
                                             + ServerCommand.INVALID
                                             + ".");
-                                    response = ServerCommand.INVALID + " Missing <item> or <ammount> parameter. Please try again.";
+                                    response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
                                     break;
                                 }
 
+                                String item = clientRequestParts[1];
+                                int amount;
+                                try {
+                                    amount = Integer.parseInt(clientRequestParts[2]);
+                                    if (amount <= 0) {
+                                        response = ServerCommand.INVALID + " <amount> must be a positive integer.";
+                                        break;
+                                    }
+                                } catch (NumberFormatException e) {
+                                    response = ServerCommand.INVALID + " <amount> is not a valid integer.";
+                                    break;
+                                }
+
+                                response = reserve(item, amount);
+
                                 System.out.println("[SERVER] Client used "+ command + " command");
-                                response = ServerCommand.OK.name();
                                 break;
                             } 
 
@@ -182,5 +219,63 @@ public class Server implements Runnable {
         System.out.println("Server started on port: " + parent.getPort());
 
     }
+
+    private String add(String name) {
+        //source : https://www.geeksforgeeks.org/java/hashmap-getordefaultkey-defaultvalue-method-in-java-with-examples/
+        int existing = db.getOrDefault(name, 0);
+        db.put(name, existing+1);
+        return ServerCommand.OK.name();
+    }
+
+    private String remove(String name) {
+        db.remove(name);
+        return ServerCommand.OK.name();
+    }
+
+    private String list(){
+        if(db.isEmpty())
+            return  ServerCommand.INVALID.name() + " the inventory is empty";
+
+        System.out.println("Listing:");
+        for(Map.Entry<String, Integer> e : db.entrySet() ){
+            System.out.println(" Item:" + e.getKey() + ", total amount:" + e.getValue());
+        }
+        return ServerCommand.OK.name();
+    }
+
+    private String modify(String oldName, String newName){
+        if(db.containsKey(newName)) {
+            return ServerCommand.INVALID.name() + "the Item " + newName + " already exist.";
+        } else if(!db.containsKey(oldName)){ //if old name doesn't
+            return ServerCommand.INVALID.name() + "the Item " + oldName + " does not exists.";
+        }
+
+        int amount = db.remove(oldName);
+        db.put(newName, amount);
+
+        return ServerCommand.OK.name();
+    }
+
+    private String manage(String name, int amount){
+        if(!db.containsKey(name))//doesn't exist
+            return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
+
+        if ( amount <= 0) {
+            return ServerCommand.INVALID.name() + " amount must be a positive integer";
+        }
+
+        //replaces old value with new one
+        db.put(name, amount);
+        return ServerCommand.OK.name();
+
+    }
+
+    private String reserve(String name, int amount){
+        int add = reserved.getOrDefault(name, 0);
+        reserved.put(name, amount+add);
+        return ServerCommand.OK.name();
+    }
+
+
 }
 
