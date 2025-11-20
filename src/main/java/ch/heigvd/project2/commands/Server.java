@@ -6,6 +6,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,12 +27,15 @@ public class Server implements Runnable {
     }
     public static String END_OF_LINE = "\n";
 
-    protected HashMap<String,Integer> db;
-    protected HashMap<String,Integer> reserved;
+    protected HashMap<String,Integer> db = new HashMap<>();
+    protected HashMap<String,Integer> reserved = new HashMap<>();
+
+
 
     public enum ServerCommand {
         OK,
-        INVALID
+        INVALID,
+        PRINT
     }
 
     public void run(){
@@ -76,9 +80,6 @@ public class Server implements Runnable {
                         // Prepare response
                         String response = null;
 
-                        db = new HashMap<>();
-                        reserved = new HashMap<>();
-
                         // Handle request from client
                         switch (command) {
                             case ADD -> {
@@ -90,8 +91,8 @@ public class Server implements Runnable {
                                     response = ServerCommand.INVALID + " Missing <item> parameter. Please try again.";
                                     break;
                                 }
-                                response = add(clientRequestParts[1]);
 
+                                response = add(clientRequestParts[1], Integer.parseInt(clientRequestParts[2]));
                                 System.out.println("[SERVER] Client used "+ command + " command");
                                 break;
                             }
@@ -115,7 +116,7 @@ public class Server implements Runnable {
                             }
 
                             case LIST -> {
-                                response = list();
+                                response =  list(clientRequestParts[1]);
 
                                 System.out.println("[SERVER] Client used "+ command + " command");
                                 break;
@@ -150,8 +151,8 @@ public class Server implements Runnable {
                                 int amount;
                                 try {
                                     amount = Integer.parseInt(clientRequestParts[2]);
-                                    if (amount <= 0) {
-                                        response = ServerCommand.INVALID + " <amount> must be a positive integer.";
+                                    if (amount < 0) {
+                                        response = ServerCommand.INVALID + " <amount> must be a positive integer or zero.";
                                         break;
                                     }
                                 } catch (NumberFormatException e) {
@@ -220,10 +221,11 @@ public class Server implements Runnable {
 
     }
 
-    private String add(String name) {
-        //source : https://www.geeksforgeeks.org/java/hashmap-getordefaultkey-defaultvalue-method-in-java-with-examples/
-        int existing = db.getOrDefault(name, 0);
-        db.put(name, existing+1);
+    private String add(String name, int amount) {
+        if(db.containsKey(name)){
+            return ServerCommand.INVALID + " item " + name + " already exists in inventory " ;
+        }
+        db.put(name, amount);
         return ServerCommand.OK.name();
     }
 
@@ -232,21 +234,29 @@ public class Server implements Runnable {
         return ServerCommand.OK.name();
     }
 
-    private String list(){
+    private String list(String name){
         if(db.isEmpty())
             return  ServerCommand.INVALID.name() + " the inventory is empty";
 
-        System.out.println("Listing:");
-        for(Map.Entry<String, Integer> e : db.entrySet() ){
-            System.out.println(" Item:" + e.getKey() + ", total amount:" + e.getValue());
+        if(name.equals("all")){
+            StringBuilder sb = new StringBuilder(" Listing:  ");
+            for(Map.Entry<String, Integer> e : db.entrySet() ){
+                sb.append(printItem(e.getKey()));
+            }
+            return ServerCommand.PRINT.name() + sb;
+        } else {
+            if(!db.containsKey(name)){
+                return ServerCommand.INVALID.name() + " item" + name + " does not exist";
+            } else {
+                return ServerCommand.PRINT.name() + printItem(name);
+            }
         }
-        return ServerCommand.OK.name();
     }
 
     private String modify(String oldName, String newName){
         if(db.containsKey(newName)) {
             return ServerCommand.INVALID.name() + "the Item " + newName + " already exist.";
-        } else if(!db.containsKey(oldName)){ //if old name doesn't
+        } else if(!db.containsKey(oldName)){
             return ServerCommand.INVALID.name() + "the Item " + oldName + " does not exists.";
         }
 
@@ -257,25 +267,36 @@ public class Server implements Runnable {
     }
 
     private String manage(String name, int amount){
-        if(!db.containsKey(name))//doesn't exist
+        //check if item exists
+        if(!db.containsKey(name))
             return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
-
-        if ( amount <= 0) {
-            return ServerCommand.INVALID.name() + " amount must be a positive integer";
-        }
 
         //replaces old value with new one
         db.put(name, amount);
         return ServerCommand.OK.name();
-
     }
 
     private String reserve(String name, int amount){
-        int add = reserved.getOrDefault(name, 0);
-        reserved.put(name, amount+add);
+        //verify if item exists in inventory
+        if(!db.containsKey(name)){
+            return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
+        }
+        //remove from inventory
+        manage(name, db.get(name)-amount);
+
+        //add to list of reserved Items
+        int existing = reserved.getOrDefault(name, 0);
+        reserved.put(name, existing+amount);
+
         return ServerCommand.OK.name();
+    }
+
+    private String printItem(String name){
+        return "Item:" + name + " Available:" + db.get(name)
+            + " Reserved:" + reserved.getOrDefault(name, 0) + "  ";
     }
 
 
 }
+
 
