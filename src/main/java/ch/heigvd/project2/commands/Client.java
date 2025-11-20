@@ -64,7 +64,7 @@ public class Client implements Runnable {
 
             try {
                 // Split user input to parse command (also known as message)
-                String[] userInputParts = userInput.split(" ", 4);
+                String[] userInputParts = userInput.split(" ");//, 4);
 
                 ClientCommand command = ClientCommand.valueOf(userInputParts[0].toUpperCase());
 
@@ -123,7 +123,10 @@ public class Client implements Runnable {
                         socket.close();
                         continue;
                     }
-                    case HELP -> help();
+                    case HELP -> {
+                        help();
+                        continue;
+                    }
                 }
 
                 if (request != null) {
@@ -132,7 +135,7 @@ public class Client implements Runnable {
                     out.flush();
                 }
                 } catch (Exception e) {
-                    System.out.println("Invalid command. Please try again.");
+                    System.out.println("Invalid command. Use HELP command to see all available commands and try again.");
                     continue;
                 }
 
@@ -165,18 +168,15 @@ public class Client implements Runnable {
                     }
 
                     case INVALID -> {
-                        if (serverResponseParts.length < 2) {
-                        System.out.println("Invalid message. Please try again.");
-                        break;
-                        }
-
-                        String invalidMessage = serverResponseParts[1];
-                        System.out.println(invalidMessage);
+                        System.out.println(serverResponse.substring(7));
                     }
 
+
                     case PRINT -> {
-                        for ( int i = 1; i < serverResponseParts.length; i++ ) {
-                            System.out.println(serverResponseParts[i]);
+                        String[] items =  serverResponse.substring(5).split(",");
+
+                        for(String item : items){
+                            System.out.println(item);
                         }
                     }
                     case null, default ->
@@ -193,7 +193,7 @@ public class Client implements Runnable {
 
   private static void help() {
     System.out.println("Usage:");
-    System.out.println("  " + ClientCommand.ADD + "<item> - Adds a new item to the inventory.");
+    System.out.println("  " + ClientCommand.ADD + "<item> [amount] - Adds a new item to the inventory.");
     System.out.println("  " + ClientCommand.REMOVE + "<item> - Removes an item from the inventory.");
     System.out.println("  " + ClientCommand.LIST + " [item] - Lists one or all items in the inventory");
     System.out.println("  " + ClientCommand.MODIFY + "<oldName> <newName> - Changes the name of an item in the inventory.");
@@ -201,5 +201,6 @@ public class Client implements Runnable {
     System.out.println("  " + ClientCommand.RESERVE + "<item> <amount> - Reserves an item in inventory.");
     System.out.println("  " + ClientCommand.QUIT + " - Close the connection to the server.");
     System.out.println("  " + ClientCommand.HELP + " - Display this help message.");
+    System.out.println("Note: [args] are optionals.");
   }
 }

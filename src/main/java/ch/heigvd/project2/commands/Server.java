@@ -6,7 +6,6 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,7 +67,7 @@ public class Server implements Runnable {
                         }
 
                         // Split user input to parse command (also known as message)
-                        String[] clientRequestParts = clientRequest.split(" ", 4);
+                        String[] clientRequestParts = clientRequest.split(" ");
 
                         ClientCommand command = null;
                         try {
@@ -151,10 +150,6 @@ public class Server implements Runnable {
                                 int amount;
                                 try {
                                     amount = Integer.parseInt(clientRequestParts[2]);
-                                    if (amount < 0) {
-                                        response = ServerCommand.INVALID + " <amount> must be a positive integer or zero.";
-                                        break;
-                                    }
                                 } catch (NumberFormatException e) {
                                     response = ServerCommand.INVALID + " <amount> is not a valid integer.";
                                     break;
@@ -225,11 +220,19 @@ public class Server implements Runnable {
         if(db.containsKey(name)){
             return ServerCommand.INVALID + " item " + name + " already exists in inventory " ;
         }
+
+        if(amount < 0){
+            return ServerCommand.INVALID + " <amount> must be a positive or null integer.";
+        }
+
         db.put(name, amount);
         return ServerCommand.OK.name();
     }
 
     private String remove(String name) {
+        if(!db.containsKey(name)){
+            return ServerCommand.INVALID + " item " + name + " does not exist in inventory " ;
+        }
         db.remove(name);
         return ServerCommand.OK.name();
     }
@@ -239,14 +242,14 @@ public class Server implements Runnable {
             return  ServerCommand.INVALID.name() + " the inventory is empty";
 
         if(name.equals("all")){
-            StringBuilder sb = new StringBuilder(" Listing:  ");
+            StringBuilder sb = new StringBuilder(" ,Listing:");
             for(Map.Entry<String, Integer> e : db.entrySet() ){
                 sb.append(printItem(e.getKey()));
             }
             return ServerCommand.PRINT.name() + sb;
         } else {
             if(!db.containsKey(name)){
-                return ServerCommand.INVALID.name() + " item" + name + " does not exist";
+                return ServerCommand.INVALID.name() + " item " + name + " does not exist";
             } else {
                 return ServerCommand.PRINT.name() + printItem(name);
             }
@@ -271,6 +274,9 @@ public class Server implements Runnable {
         if(!db.containsKey(name))
             return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
 
+        if(amount < 0){
+            return ServerCommand.INVALID.name() + " <amount> must be a positive or null integer.";
+        }
         //replaces old value with new one
         db.put(name, amount);
         return ServerCommand.OK.name();
@@ -280,6 +286,14 @@ public class Server implements Runnable {
         //verify if item exists in inventory
         if(!db.containsKey(name)){
             return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
+        }
+
+        if(amount < 0){
+            return ServerCommand.INVALID.name() + " <amount> must be a positive integer.";
+        }
+
+        if(amount > db.get(name)){
+            return ServerCommand.INVALID + " cannot reserve more item than available";
         }
         //remove from inventory
         manage(name, db.get(name)-amount);
@@ -292,8 +306,8 @@ public class Server implements Runnable {
     }
 
     private String printItem(String name){
-        return "Item:" + name + " Available:" + db.get(name)
-            + " Reserved:" + reserved.getOrDefault(name, 0) + "  ";
+        return " ,Item:" + name + ",Available:" + db.get(name)
+            + ",Reserved:" + reserved.getOrDefault(name, 0);
     }
 
 
