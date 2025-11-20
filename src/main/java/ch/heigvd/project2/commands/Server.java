@@ -6,7 +6,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 
@@ -26,8 +26,8 @@ public class Server implements Runnable {
     }
     public static String END_OF_LINE = "\n";
 
-    protected HashMap<String,Integer> db = new HashMap<>();
-    protected HashMap<String,Integer> reserved = new HashMap<>();
+    protected ConcurrentHashMap<String,Integer> db = new ConcurrentHashMap<>();
+    protected ConcurrentHashMap<String,Integer> reserved = new ConcurrentHashMap<>();
 
 
 
