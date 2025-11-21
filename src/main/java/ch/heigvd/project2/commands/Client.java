@@ -11,9 +11,9 @@ public class Client implements Runnable {
 
     @CommandLine.ParentCommand protected Root parent;
 
-    protected String HOST = "localhost";
+    protected String HOST;
 
-    private int PORT = 7580;
+    private int PORT;
     public enum ClientCommand {
         ADD,
         REMOVE,
@@ -35,6 +35,7 @@ public class Client implements Runnable {
 
     public void run(){
         this.PORT = parent.getPort();
+        this.HOST = parent.getHost();
         this.start();
     }
 
