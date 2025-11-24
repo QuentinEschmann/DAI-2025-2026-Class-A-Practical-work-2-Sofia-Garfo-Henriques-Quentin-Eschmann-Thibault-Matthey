@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.Map;
 
 
@@ -26,10 +28,9 @@ public class Server implements Runnable {
     }
     public static String END_OF_LINE = "\n";
 
-    protected ConcurrentHashMap<String,Integer> db = new ConcurrentHashMap<>();
-    protected ConcurrentHashMap<String,Integer> reserved = new ConcurrentHashMap<>();
-
-
+    // Make these static so they're shared across all client threads
+    protected static ConcurrentHashMap<String,Integer> db = new ConcurrentHashMap<>();
+    protected static ConcurrentHashMap<String,Integer> reserved = new ConcurrentHashMap<>();
 
     public enum ServerCommand {
         OK,
@@ -38,182 +39,190 @@ public class Server implements Runnable {
     }
 
     public void run(){
-        try (ServerSocket serverSocket = new ServerSocket(parent.getPort());) {
-            System.out.println("[Server] Listening on port " + parent.getPort() );
+        try (ServerSocket serverSocket = new ServerSocket(parent.getPort());
+             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            System.out.println("[SERVER] Listening on port " + parent.getPort() );
 
             while (!serverSocket.isClosed()) {
-                try (Socket socket = serverSocket.accept();
-                     Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
-                     BufferedReader in = new BufferedReader(reader);
-                     Writer writer =
-                             new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
-                     BufferedWriter out = new BufferedWriter(writer)) {
-                    System.out.println(
-                            "[Server] New client connected from "
-                                    + socket.getInetAddress().getHostAddress()
-                                    + ":"
-                                    + socket.getPort());
-
-                    // Run REPL until client disconnects
-                    while (!socket.isClosed()) {
-                        // Read response from client
-                        String clientRequest = in.readLine();
-
-                        // If clientRequest is null, the client has disconnected
-                        // The server can close the connection and wait for a new client
-                        if (clientRequest == null) {
-                            socket.close();
-                            continue;
-                        }
-
-                        // Split user input to parse command (also known as message)
-                        String[] clientRequestParts = clientRequest.split(" ");
-
-                        ClientCommand command = null;
-                        try {
-                            command = ClientCommand.valueOf(clientRequestParts[0]);
-                        } catch (Exception e) {
-                            // Do nothing
-                        }
-
-                        // Prepare response
-                        String response = null;
-
-                        // Handle request from client
-                        switch (command) {
-                            case ADD -> {
-                                if(clientRequestParts.length < 2){
-                                        System.out.println(
-                                            "[Server] " + command + " command received without <item> parameter. Replying with "
-                                            + ServerCommand.INVALID
-                                            + ".");
-                                    response = ServerCommand.INVALID + " Missing <item> parameter. Please try again.";
-                                    break;
-                                }
-
-                                response = add(clientRequestParts[1], Integer.parseInt(clientRequestParts[2]));
-                                System.out.println("[SERVER] Client used "+ command + " command");
-                                break;
-                            }
-
-                            case REMOVE -> {
-                                if(clientRequestParts.length < 2){
-                                        System.out.println(
-                                            "[Server] " + command + " command received without <item> parameter. Replying with "
-                                            + ServerCommand.INVALID
-                                            + ".");
-                                    response = ServerCommand.INVALID + " Missing <item> parameter. Please try again.";
-                                    break;
-                                }
-
-                                String item = clientRequestParts[1];
-
-                                response = remove(item);
-
-                                System.out.println("[SERVER] Client used "+ command + " command");
-                                break;
-                            }
-
-                            case LIST -> {
-                                response =  list(clientRequestParts[1]);
-
-                                System.out.println("[SERVER] Client used "+ command + " command");
-                                break;
-                            }
-
-                            case MODIFY -> {
-                                if(clientRequestParts.length < 3){
-                                        System.out.println(
-                                            "[Server] " + command + " command received without <oldName> or <newName> parameters. Replying with "
-                                            + ServerCommand.INVALID
-                                            + ".");
-                                    response = ServerCommand.INVALID + " Missing <oldname> or <newName> parameter. Please try again.";
-                                    break;
-                                }
-
-                                response = modify(clientRequestParts[1], clientRequestParts[2]);
-                                System.out.println("[SERVER] Client used "+ command + " command");
-                                break;
-                            }
-
-                            case MANAGE -> {
-                                if(clientRequestParts.length < 3){
-                                        System.out.println(
-                                            "[Server] " + command + " command received without <item> or <amount> parameter. Replying with "
-                                            + ServerCommand.INVALID
-                                            + ".");
-                                    response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
-                                    break;
-                                }
-
-                                String item = clientRequestParts[1];
-                                int amount;
-                                try {
-                                    amount = Integer.parseInt(clientRequestParts[2]);
-                                } catch (NumberFormatException e) {
-                                    response = ServerCommand.INVALID + " <amount> is not a valid integer.";
-                                    break;
-                                }
-
-                                response = manage(item, amount);
-                                System.out.println("[SERVER] Client used "+ command + " command");
-                                break;
-                            }
-
-                            case RESERVE -> {
-                                if(clientRequestParts.length < 3){
-                                        System.out.println(
-                                            "[Server] " + command + " command received without <item> or <amount> parameter. Replying with "
-                                            + ServerCommand.INVALID
-                                            + ".");
-                                    response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
-                                    break;
-                                }
-
-                                String item = clientRequestParts[1];
-                                int amount;
-                                try {
-                                    amount = Integer.parseInt(clientRequestParts[2]);
-                                    if (amount <= 0) {
-                                        response = ServerCommand.INVALID + " <amount> must be a positive integer.";
-                                        break;
-                                    }
-                                } catch (NumberFormatException e) {
-                                    response = ServerCommand.INVALID + " <amount> is not a valid integer.";
-                                    break;
-                                }
-
-                                response = reserve(item, amount);
-
-                                System.out.println("[SERVER] Client used "+ command + " command");
-                                break;
-                            } 
-
-                            case null, default -> {
-                                System.out.println(
-                                        "[Server] Unknown command sent by client, reply with "
-                                                + ServerCommand.INVALID
-                                                + ".");
-                                response = ServerCommand.INVALID + " Unknown command. Please try again.";
-                            }
-                        }
-
-                        // Send response to client
-                        out.write(response + END_OF_LINE);
-                        out.flush();
-                    }
-
-                    System.out.println("[Server] Closing connection");
-                } catch (IOException e) {
-                    System.out.println("[Server] IO exception: " + e);
-                }
+                Socket clientSocket = serverSocket.accept();
+                executor.submit(new ClientHandler(clientSocket));
             }
         } catch (IOException e) {
-            System.out.println("[Server] IO exception: " + e);
+            System.out.println("[SERVER] IO exception: " + e);
         }
 
         System.out.println("Server started on port: " + parent.getPort());
+    }
 
+    class ClientHandler implements Runnable {
+        private final Socket socket;
+
+        public ClientHandler(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try (socket; // Allow try-with-resources to close socket
+                 Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
+                 BufferedReader in = new BufferedReader(reader);
+                 Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
+                 BufferedWriter out = new BufferedWriter(writer)) {
+                
+                System.out.println(
+                        "[SERVER] New client connected from "
+                                + socket.getInetAddress().getHostAddress()
+                                + ":"
+                                + socket.getPort());
+
+                // Run REPL until client disconnects
+                while (!socket.isClosed()) {
+                    // Read response from client
+                    String clientRequest = in.readLine();
+
+                    // If clientRequest is null, the client has disconnected
+                    if (clientRequest == null) {
+                        break;
+                    }
+
+                    // Split user input to parse command
+                    String[] clientRequestParts = clientRequest.split(" ");
+
+                    ClientCommand command = null;
+                    try {
+                        command = ClientCommand.valueOf(clientRequestParts[0]);
+                    } catch (Exception e) {
+                        // Do nothing
+                    }
+
+                    // Prepare response
+                    String response = null;
+
+                    // Handle request from client
+                    switch (command) {
+                        case ADD -> {
+                            if(clientRequestParts.length < 3){
+                                System.out.println(
+                                    "[SERVER] " + command + " command received without parameters. Replying with "
+                                    + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
+                                break;
+                            }
+
+                            response = add(clientRequestParts[1], Integer.parseInt(clientRequestParts[2]));
+                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            break;
+                        }
+
+                        case REMOVE -> {
+                            if(clientRequestParts.length < 2){
+                                System.out.println(
+                                    "[SERVER] " + command + " command received without <item> parameter. Replying with "
+                                    + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID + " Missing <item> parameter. Please try again.";
+                                break;
+                            }
+
+                            String item = clientRequestParts[1];
+                            response = remove(item);
+
+                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            break;
+                        }
+
+                        case LIST -> {
+                            if(clientRequestParts.length < 2){
+                                response = ServerCommand.INVALID + " Missing parameter. Please try again.";
+                                break;
+                            }
+                            response = list(clientRequestParts[1]);
+                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            break;
+                        }
+
+                        case MODIFY -> {
+                            if(clientRequestParts.length < 3){
+                                System.out.println(
+                                    "[SERVER] " + command + " command received without <oldName> or <newName> parameters. Replying with "
+                                    + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID + " Missing <oldname> or <newName> parameter. Please try again.";
+                                break;
+                            }
+
+                            response = modify(clientRequestParts[1], clientRequestParts[2]);
+                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            break;
+                        }
+
+                        case MANAGE -> {
+                            if(clientRequestParts.length < 3){
+                                System.out.println(
+                                    "[SERVER] " + command + " command received without <item> or <amount> parameter. Replying with "
+                                    + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
+                                break;
+                            }
+
+                            String item = clientRequestParts[1];
+                            int amount;
+                            try {
+                                amount = Integer.parseInt(clientRequestParts[2]);
+                            } catch (NumberFormatException e) {
+                                response = ServerCommand.INVALID + " <amount> is not a valid integer.";
+                                break;
+                            }
+
+                            response = manage(item, amount);
+                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            break;
+                        }
+
+                        case RESERVE -> {
+                            if(clientRequestParts.length < 3){
+                                System.out.println(
+                                    "[SERVER] " + command + " command received without <item> or <amount> parameter. Replying with "
+                                    + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
+                                break;
+                            }
+
+                            String item = clientRequestParts[1];
+                            int amount;
+                            try {
+                                amount = Integer.parseInt(clientRequestParts[2]);
+                                if (amount <= 0) {
+                                    response = ServerCommand.INVALID + " <amount> must be a positive integer.";
+                                    break;
+                                }
+                            } catch (NumberFormatException e) {
+                                response = ServerCommand.INVALID + " <amount> is not a valid integer.";
+                                break;
+                            }
+
+                            response = reserve(item, amount);
+
+                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            break;
+                        } 
+
+                        case null, default -> {
+                            System.out.println(
+                                    "[SERVER] Unknown command sent by "+ getUID(socket) +", reply with "
+                                            + ServerCommand.INVALID);
+                            response = ServerCommand.INVALID + " Unknown command. Please try again.";
+                        }
+                    }
+
+                    // Send response to client
+                    out.write(response + END_OF_LINE);
+                    out.flush();
+                }
+
+                System.out.println("[SERVER] Closing connection " + getUID(socket));
+            } catch (IOException e) {
+                System.out.println("[SERVER] IO exception with user: "+ getUID(socket) + " " + e);
+            }
+        }
     }
 
     private String add(String name, int amount) {
@@ -308,6 +317,21 @@ public class Server implements Runnable {
     private String printItem(String name){
         return " ,Item:" + name + ",Available:" + db.get(name)
             + ",Reserved:" + reserved.getOrDefault(name, 0);
+    }
+
+    private String getUID(Socket s){
+        try {
+            String input = s.getInetAddress().getHostAddress() + s.getPort();
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : digest) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.substring(0, 5);
+        } catch (Exception e) {
+            return "idk";
+        }
     }
 
 
