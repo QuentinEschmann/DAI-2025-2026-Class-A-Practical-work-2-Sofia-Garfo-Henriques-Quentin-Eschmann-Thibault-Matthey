@@ -1,5 +1,6 @@
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
 ADD target/Warehouse_Manager.jar Warehouse_Manager.jar
-ENTRYPOINT ["java", "-jar","Warehouse_Manager.jar","--host" ,"server","Client"]
+EXPOSE 7580
 
+ENTRYPOINT ["java", "-jar", "Warehouse_Manager.jar"]

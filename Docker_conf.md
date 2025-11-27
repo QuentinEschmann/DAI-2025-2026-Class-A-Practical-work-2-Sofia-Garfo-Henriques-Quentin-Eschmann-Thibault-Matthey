@@ -1,10 +1,9 @@
 # Lab configuration 
 1. docker network create mynet
+2. docker build -f Dockerfile -t WareHouse .
 
 # Server Command
-1. docker build -f server-dockerfile -t server .
-2. docker run --rm -it --name server --network=mynet -p 7580:7580 server:latest 
+1. docker run --rm -it --name server --network=mynet -p 7580:7580 WareHouse:latest Server
 
 # Client Command 
-1. docker build -f client-dockerfile -t client .
-2. docker run --rm -it --network=mynet client:latest
+1. docker run --rm -it --network=mynet WareHouse:latest --host server Client
