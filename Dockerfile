@@ -1,6 +1,9 @@
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
-ADD target/Warehouse_Manager.jar Warehouse_Manager.jar
+COPY mvnw mvnw.cmd pom.xml ./
+COPY .mvn .mvn
+COPY src src
+RUN chmod +x mvnw
+RUN ./mvnw clean package
 EXPOSE 7580
-
-ENTRYPOINT ["java", "-jar", "Warehouse_Manager.jar"]
+ENTRYPOINT ["java", "-jar", "target/Warehouse_Manager.jar"]
