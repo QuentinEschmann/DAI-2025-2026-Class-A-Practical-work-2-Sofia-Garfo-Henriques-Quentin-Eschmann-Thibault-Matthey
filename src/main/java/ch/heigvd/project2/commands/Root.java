@@ -39,4 +39,7 @@ public class Root implements Runnable{
     protected int getPort(){
         return Integer.parseInt(port);
     }
+    protected String getHost(){
+        return host;
+    }
 }

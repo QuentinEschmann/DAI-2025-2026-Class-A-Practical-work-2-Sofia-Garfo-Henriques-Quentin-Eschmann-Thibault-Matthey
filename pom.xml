@@ -125,5 +125,6 @@
         </executions>
       </plugin>
     </plugins>
+      <finalName>Warehouse_Manager</finalName>
   </build>
 </project>
