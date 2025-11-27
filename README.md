@@ -17,13 +17,46 @@ If one of the instructions from the client is impossible or not following the ex
 
 
 ### Commands list 
-Add [Item] [Name] [Number] - Add a new item with the [Name] and the [Number] indicated <br>
-Remove [Item] - Remove the [Item] from the inventory<br>
-List [Item]/All - List the number of [Item] available, or list every item in the inventory with the number<br>
-Modify [Item] [NewName] - Rename the [Item] by the [NewName] <br>
-Manage [Item] [NewNumber] - Change the number of [Item] available by the [NewNumber] <br>
-Reserve [Item] [Number] - Reserve the [Number] of [Item] if possible, number of reserved items are shown by the "List" command.
+#### Add [Item] [Number] 
+Add a new item with the [Name] and the [Number] indicated <br>
+Answer : OK <br>
+Error : INVALID Missing [item] parameter. Please try again. - Missing a parameters <br>
+Error : INVALID item [Item] already exists in inventory - Item was already created
 
+#### Remove [Item] 
+Remove the [Item] from the inventory<br>
+Answer : OK <br> 
+Error : INVALID Missing [item] parameter. Please try again. - Missing a parameters<br>
+
+#### List [Item]/All
+List the number of [Item] available, or list every item in the inventory with the number<br>
+Answer : the list desired or all the items. <br>
+Error : INVALID the inventory is empty. - nothing is in the database to be displayed<br>
+Error : INVALID item [Item] does not exist - the item you try to display does not exist in the database.
+
+#### Modify [Item] [NewName]
+Rename the [Item] by the [NewName] <br>
+Answer : OK <br>
+Error : INVALID Missing [oldname] or [newName] parameter. Please try again. - Missing a parameters<br>
+Error : INVALID the Item [newName] already exist. - The new name already exists in the database.<br>
+Error : INVALID the Item [oldName] does not exists. - The old name does not exist in the database. 
+#### Manage [Item] [NewNumber]
+Change the number of [Item] available by the [NewNumber] <br>
+Answer : OK <br>
+Error : INVALID Missing [Item] or [NewNumber] parameter. Please try again. - Missing a parameters.<br>
+Error : INVALID [NewNumber] must be a positive integer or zero. - The new number is not a positive number.<br>
+Error : INVALID [NewNumber] is not a valid integer. - The new number is not valid
+ 
+#### Reserve [Item] [Number]
+Reserve the [Number] of [Item] if possible, number of reserved items are shown by the "List" command.<br>
+Answer : OK <br>
+Error : INVALID Missing [Item] or [Number] parameter. Please try again. - Missing a parameters.<br>
+Error : INVALID [Number] must be a positive integer or zero. - The number is not a positive number.<br>
+Error : INVALID [Number] is not a valid integer. - The number is not valid.<br>
+Error : INVALID [Number] is superior to actual stock. The number is superior to the ammount in the database.
+
+#### Invalid Command : 
+Answer : INVALID Unknown command. Please try again.
 ### Usage Example
 
 Basic usage example :
