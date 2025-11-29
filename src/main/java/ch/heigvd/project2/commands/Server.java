@@ -223,13 +223,16 @@ public class Server implements Runnable {
 
     private String add(String name, int amount) {
         if(db.containsKey(name)){
-            return ServerCommand.INVALID + " item " + name + " already exists in inventory " ;
+            return (ServerCommand.INVALID + " item " + name + " already exists in inventory ") ;
         }
         db.put(name, amount);
         return ServerCommand.OK.name();
     }
 
     private String remove(String name) {
+        if(!db.containsKey(name)){
+            return (ServerCommand.INVALID + " item " + name + " does not exist.");
+        }
         db.remove(name);
         return ServerCommand.OK.name();
     }
@@ -248,16 +251,18 @@ public class Server implements Runnable {
             if(!db.containsKey(name)){
                 return ServerCommand.INVALID.name() + " item" + name + " does not exist";
             } else {
-                return ServerCommand.PRINT.name() + printItem(name);
+                return ServerCommand.PRINT.name() +" "+ printItem(name);
             }
         }
     }
 
     private String modify(String oldName, String newName){
-        if(db.containsKey(newName)) {
-            return ServerCommand.INVALID.name() + "the Item " + newName + " already exist.";
-        } else if(!db.containsKey(oldName)){
-            return ServerCommand.INVALID.name() + "the Item " + oldName + " does not exists.";
+        if(!db.containsKey(oldName)) {
+            return ServerCommand.INVALID + " the Item " + oldName + " does not exists.";
+
+        } else if(db.containsKey(newName)){
+            return ServerCommand.INVALID + " the Item " + newName + " already exist.";
+
         }
 
         int amount = db.remove(oldName);
@@ -269,7 +274,7 @@ public class Server implements Runnable {
     private String manage(String name, int amount){
         //check if item exists
         if(!db.containsKey(name))
-            return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
+            return  ServerCommand.INVALID + " item " + name + " does not exist.";
 
         //replaces old value with new one
         db.put(name, amount);
@@ -279,7 +284,9 @@ public class Server implements Runnable {
     private String reserve(String name, int amount){
         //verify if item exists in inventory
         if(!db.containsKey(name)){
-            return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
+            return (ServerCommand.INVALID + " item " + name + " does not exist.");
+        }else if(db.get(name) < amount){
+            return (ServerCommand.INVALID + " not enough " + name + " in the warehouse.");
         }
         //remove from inventory
         manage(name, db.get(name)-amount);
