@@ -12,12 +12,12 @@ This repository for the practical work 2 for the DAI course.
     - [Overview](#overview)
     - [Transport Protocol](#transport-protocol)
     - [Commands List](#commands-list)
-        - [Add Item Number](#add-item-number)
+        - [Add Item](#add-item-number)
         - [Remove Item](#remove-item)
-        - [List Item or All](#list-item-or-all)
-        - [Modify Item NewName](#modify-item-newname)
-        - [Manage Item NewNumber](#manage-item-newnumber)
-        - [Reserve Item Number](#reserve-item-number)
+        - [List Item or All](#list-item-all)
+        - [Modify Item ](#modify-item-newname)
+        - [Manage Item ](#manage-item-newnumber)
+        - [Reserve Item ](#reserve-item-number)
         - [Invalid Command](#invalid-command)
     - [Usage Example](#usage-example)
 - [Sources](#sources)
@@ -75,7 +75,7 @@ Remove the [Item] from the inventory<br>
 Answer : OK <br> 
 Error : INVALID Missing [item] parameter. Please try again. - Missing a parameters<br>
 
-#### List [Item]/All
+#### List [Item] or All
 
 List the number of [Item] available, or list every item in the inventory with the number<br>
 Answer : the list desired or all the items. <br>
@@ -107,7 +107,7 @@ Error : INVALID [Number] must be a positive integer or zero. - The number is not
 Error : INVALID [Number] is not a valid integer. - The number is not valid.<br>
 Error : INVALID [Number] is superior to actual stock. The number is superior to the ammount in the database.
 
-#### Invalid Command :
+#### Invalid Command 
 
 Answer : INVALID Unknown command. Please try again.
 
