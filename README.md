@@ -26,7 +26,8 @@ This repository for the practical work 2 for the DAI course.
 
 ## Project description
 
-A client-server inventory management system enabling multiple users to concurrently view and modify a shared, non-persistent warehouse database over a network.
+A client-server inventory management system enabling multiple users to concurrently view and modify a shared warehouse database over a network.
+The server maintains inventory data temporarily using ConcurrentHashMap structures for thread-safe, concurrent access.
 
 ## Group Members
 
