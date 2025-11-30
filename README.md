@@ -14,7 +14,7 @@ This repository for the practical work 2 for the DAI course.
     - [Commands List](#commands-list)
         - [Add Item](#add-item-number)
         - [Remove Item](#remove-item)
-        - [List Item or All](#list-item-all)
+        - [List Item or All](#list-item-or-all)
         - [Modify Item ](#modify-item-newname)
         - [Manage Item ](#manage-item-newnumber)
         - [Reserve Item ](#reserve-item-number)
