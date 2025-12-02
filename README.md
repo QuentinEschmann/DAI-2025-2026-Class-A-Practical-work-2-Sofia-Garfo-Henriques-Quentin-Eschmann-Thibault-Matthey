@@ -38,13 +38,26 @@ This project has been made by:
 
 ## Installation and Usage
 
-To run this project, the arguments should be given like this : <br>
+## Deploy using Docker:
+
+This project is available via GitHub Container Registry. The only requirement is having Docker installed on your system.
+
+###  Building and Running Locally
+
+To run the project locally clone this repository and use the following command in order to  build the project:
+
+```bash
+./mvnw clean package
+```
+
+To run this project locally, the arguments should be given like this : <br>
 ```bash
 java -jar target/project3-1.0-SNAPSHOT.jar <PORT> [COMMAND] {--host <host>}
 ```
-- \<PORT> references the port on wich the application will be run.
+- \<PORT> references the port on which the application will be run.
 - [COMMAND] gives the information if we want to run a client or a server app.
-- {--host \<host>} is a client specific argument that specifies the server to wich connect.
+- {--host \<host>} is a client specific argument that specifies the server to which connect.
+
 
 ## Protocol documentation
 
