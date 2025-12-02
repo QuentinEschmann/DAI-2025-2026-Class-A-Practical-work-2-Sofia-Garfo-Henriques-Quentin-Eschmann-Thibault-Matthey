@@ -226,6 +226,7 @@ public class Server implements Runnable {
     }
 
     private String add(String name, int amount) {
+        name = name.toUpperCase();
         if(db.containsKey(name)){
             return (ServerCommand.INVALID + " item " + name + " already exists in inventory ") ;
         }
@@ -239,6 +240,7 @@ public class Server implements Runnable {
     }
 
     private String remove(String name) {
+        name = name.toUpperCase();
         if(!db.containsKey(name)){
             return ServerCommand.INVALID + " item " + name + " does not exist in inventory " ;
         }
@@ -247,10 +249,11 @@ public class Server implements Runnable {
     }
 
     private String list(String name){
+        name = name.toUpperCase();
         if(db.isEmpty())
             return  ServerCommand.INVALID.name() + " the inventory is empty";
 
-        if(name.equals("all")){
+        if(name.equals("ALL")){
             StringBuilder sb = new StringBuilder(" ,Listing:");
             for(Map.Entry<String, Integer> e : db.entrySet() ){
                 sb.append(printItem(e.getKey()));
@@ -266,6 +269,8 @@ public class Server implements Runnable {
     }
 
     private String modify(String oldName, String newName){
+        newName = newName.toUpperCase();
+        oldName = oldName.toUpperCase();
         if(!db.containsKey(oldName)) {
             return ServerCommand.INVALID + " the Item " + oldName + " does not exists.";
 
@@ -281,6 +286,7 @@ public class Server implements Runnable {
     }
 
     private String manage(String name, int amount){
+        name = name.toUpperCase();
         //check if item exists
         if(!db.containsKey(name))
             return  ServerCommand.INVALID + " item " + name + " does not exist.";
@@ -294,6 +300,7 @@ public class Server implements Runnable {
     }
 
     private String reserve(String name, int amount){
+        name = name.toUpperCase();
         //verify if item exists in inventory
         if(!db.containsKey(name)){
             return (ServerCommand.INVALID + " item " + name + " does not exist.");
@@ -319,6 +326,7 @@ public class Server implements Runnable {
     }
 
     private String printItem(String name){
+        name = name.toUpperCase();
         return " ,Item:" + name + ",Available:" + db.get(name)
             + ",Reserved:" + reserved.getOrDefault(name, 0);
     }
