@@ -11,7 +11,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.Map;
 
-
+/**
+ * Backend implementation of the Warehouse Manager
+ */
 @CommandLine.Command(name = "Server", description = "Starts server side application.")
 public class Server implements Runnable {
 
@@ -38,6 +40,9 @@ public class Server implements Runnable {
         PRINT
     }
 
+    /**
+     * function that accepts clients in a loop
+     */
     public void run(){
         try (ServerSocket serverSocket = new ServerSocket(parent.getPort());
              ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
@@ -54,13 +59,23 @@ public class Server implements Runnable {
         System.out.println("Server started on port: " + parent.getPort());
     }
 
+    /**
+     * Class to handle clients concurrently
+     */
     class ClientHandler implements Runnable {
         private final Socket socket;
 
+        /**
+         * constructor for client handler
+         * @param socket Socket, socket used for this connection
+         */
         public ClientHandler(Socket socket) {
             this.socket = socket;
         }
 
+        /**
+         * function that handles the client
+         */
         @Override
         public void run() {
             try (socket; // Allow try-with-resources to close socket
@@ -225,6 +240,12 @@ public class Server implements Runnable {
         }
     }
 
+    /**
+     * add a new item to db
+     * @param name String, name of the item to add
+     * @param amount int, ammount to add
+     * @return String, command status
+     */
     private String add(String name, int amount) {
         name = name.toUpperCase();
         if(db.containsKey(name)){
@@ -248,6 +269,11 @@ public class Server implements Runnable {
         return ServerCommand.OK.name();
     }
 
+    /**
+     * lists items contained in db
+     * @param name String, item to list or "all" to list everything
+     * @return String, command status
+     */
     private String list(String name){
         name = name.toUpperCase();
         if(db.isEmpty())
@@ -268,6 +294,12 @@ public class Server implements Runnable {
         }
     }
 
+    /**
+     * modifies the name of an item
+     * @param oldName String, old name for item
+     * @param newName String, new name for item
+     * @return String, command status
+     */
     private String modify(String oldName, String newName){
         newName = newName.toUpperCase();
         oldName = oldName.toUpperCase();
@@ -285,6 +317,12 @@ public class Server implements Runnable {
         return ServerCommand.OK.name();
     }
 
+    /**
+     * manages the ammount of item in db
+     * @param name String, item to manage
+     * @param amount int, new ammount of this item
+     * @return String, command status
+     */
     private String manage(String name, int amount){
         name = name.toUpperCase();
         //check if item exists
@@ -299,6 +337,12 @@ public class Server implements Runnable {
         return ServerCommand.OK.name();
     }
 
+    /**
+     * reserves an ammount of item in internal db
+     * @param name String, name of the item
+     * @param amount int, ammount to reserve
+     * @return String, command status
+     */
     private String reserve(String name, int amount){
         name = name.toUpperCase();
         //verify if item exists in inventory
@@ -325,12 +369,22 @@ public class Server implements Runnable {
         return ServerCommand.OK.name();
     }
 
+    /**
+     * concatenates the informations about an item in db
+     * @param name String, name of the item
+     * @return String, informations stored about the item
+     */
     private String printItem(String name){
         name = name.toUpperCase();
         return " ,Item:" + name + ",Available:" + db.get(name)
             + ",Reserved:" + reserved.getOrDefault(name, 0);
     }
 
+    /**
+     * defines an uid for a client based on his ip and used port
+     * @param s Socket, socket used with this client
+     * @return String, 5 char uid
+     */
     private String getUID(Socket s){
         try {
             String input = s.getInetAddress().getHostAddress() + s.getPort();
