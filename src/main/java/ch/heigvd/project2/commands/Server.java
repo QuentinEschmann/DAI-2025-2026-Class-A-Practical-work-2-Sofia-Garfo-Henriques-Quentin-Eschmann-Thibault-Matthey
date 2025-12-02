@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.Map;
 
 /**
  * Backend implementation of the Warehouse Manager
@@ -30,6 +29,7 @@ public class Server implements Runnable {
         RESERVE
     }
 
+    // end of line character
     public static String END_OF_LINE = "\n";
 
     // Make these static so they're shared across all client threads
@@ -295,7 +295,7 @@ public class Server implements Runnable {
 
         if (name.equals("ALL")) {
             StringBuilder sb = new StringBuilder(" ,Listing:");
-            for (Map.Entry<String, Integer> e : db.entrySet()) {
+            for (ConcurrentHashMap.Entry<String, Integer> e : db.entrySet()) {
                 sb.append(printItem(e.getKey()));
             }
             return ServerCommand.PRINT.name() + sb;
@@ -328,6 +328,9 @@ public class Server implements Runnable {
 
         int amount = db.remove(oldName);
         db.put(newName, amount);
+
+        amount = reserved.remove(oldName);
+        reserved.put(newName, amount);
 
         return ServerCommand.OK.name();
     }
