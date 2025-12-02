@@ -4,16 +4,23 @@ import picocli.CommandLine;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
+/**
+ * client implementation of Warehouse Manager
+ */
 @CommandLine.Command(name = "Client", description = "Starts server client application.")
 public class Client implements Runnable {
 
-    @CommandLine.ParentCommand protected Root parent;
+    @CommandLine.ParentCommand
+    protected Root parent;
 
+    // host to connect to
     protected String HOST;
 
+    // port to connect to
     private int PORT;
+
+    // constant for messages
     public enum ClientCommand {
         ADD,
         REMOVE,
@@ -24,118 +31,125 @@ public class Client implements Runnable {
         QUIT,
         HELP
     }
+
+    // end of line constent
     public static String END_OF_LINE = "\n";
 
-
+    // constant for responces
     public enum ServerCommand {
         OK,
         INVALID,
         PRINT
     }
 
-    public void run(){
+    // entry point of client implementation
+    public void run() {
         this.PORT = parent.getPort();
         this.HOST = parent.getHost();
         this.start();
     }
 
+    /**
+     * connect to server and starts a repl to send commands
+     */
     public void start() {
         System.out.println("[Client] Connecting to " + HOST + ":" + PORT + "...");
 
         try (Socket socket = new Socket(HOST, PORT);
-            Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
-            BufferedReader in = new BufferedReader(reader);
-            Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
-            BufferedWriter out = new BufferedWriter(writer);
-            Reader systemInReader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
-            BufferedReader bsir = new BufferedReader(systemInReader)) {
-        System.out.println("[Client] Connected to " + HOST + ":" + PORT);
-        System.out.println();
+                Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
+                BufferedReader in = new BufferedReader(reader);
+                Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
+                BufferedWriter out = new BufferedWriter(writer);
+                Reader systemInReader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
+                BufferedReader bsir = new BufferedReader(systemInReader)) {
+            System.out.println("[Client] Connected to " + HOST + ":" + PORT);
+            System.out.println();
 
-        // Display help message
-        help();
+            // Display help message
+            help();
 
-        // Run REPL until user quits
-        while (!socket.isClosed()) {
-            // Display prompt
-            System.out.print("> ");
+            // Run REPL until user quits
+            while (!socket.isClosed()) {
+                // Display prompt
+                System.out.print("> ");
 
-            // Read user input
-            String userInput = bsir.readLine();
+                // Read user input
+                String userInput = bsir.readLine();
 
-            try {
-                // Split user input to parse command (also known as message)
-                String[] userInputParts = userInput.split(" ");//, 4);
+                try {
+                    // Split user input to parse command (also known as message)
+                    String[] userInputParts = userInput.split(" ");// , 4);
 
-                ClientCommand command = ClientCommand.valueOf(userInputParts[0].toUpperCase());
-                // Prepare request
-                String request = null;
+                    ClientCommand command = ClientCommand.valueOf(userInputParts[0].toUpperCase());
+                    // Prepare request
+                    String request = null;
 
-                switch (command) {
-                    case ADD -> {
-                        String name = userInputParts[1];
-                        int ammount = 0;
-                        if(userInputParts.length > 2){
-                            ammount = Integer.parseInt(userInputParts[2]);
+                    switch (command) {
+                        case ADD -> {
+                            String name = userInputParts[1];
+                            int ammount = 0;
+                            if (userInputParts.length > 2) {
+                                ammount = Integer.parseInt(userInputParts[2]);
+                            }
+                            request = ClientCommand.ADD + " " + name + " " + ammount;
+                            break;
                         }
-                        request = ClientCommand.ADD + " " + name + " " + ammount;
-                        break;
-                    }
-                    case REMOVE -> {
-                        String name = userInputParts[1];
+                        case REMOVE -> {
+                            String name = userInputParts[1];
 
-                        request = ClientCommand.REMOVE + " " + name;
-                        break;
-                    }
-                    case LIST -> {
-                        String item = "all";
-
-                        if(userInputParts.length > 1){
-                            item = userInputParts[1];
+                            request = ClientCommand.REMOVE + " " + name;
+                            break;
                         }
-                        
-                        request = ClientCommand.LIST + " " + item;
-                        
-                        break;
-                    }
-                    case MODIFY -> {
-                        String oldName = userInputParts[1];
-                        String newName = userInputParts[2];
+                        case LIST -> {
+                            String item = "all";
 
-                        request = ClientCommand.MODIFY + " " + oldName + " " + newName;
-                        break;
-                    }
-                    case MANAGE -> {
-                        String name = userInputParts[1];
-                        int quant = Integer.parseInt(userInputParts[2]);
+                            if (userInputParts.length > 1) {
+                                item = userInputParts[1];
+                            }
 
-                        request = ClientCommand.MANAGE + " " + name + " " + quant;
-                        break;
-                    }
-                    case RESERVE -> {
-                        String name = userInputParts[1];
-                        int quant = Integer.parseInt(userInputParts[2]);
+                            request = ClientCommand.LIST + " " + item;
 
-                        request = ClientCommand.RESERVE + " " + name + " " + quant;
-                        break;
-                    }
-                    case QUIT -> {
-                        socket.close();
-                        continue;
-                    }
-                    case HELP -> {
-                        help();
-                        continue;
-                    }
-                }
+                            break;
+                        }
+                        case MODIFY -> {
+                            String oldName = userInputParts[1];
+                            String newName = userInputParts[2];
 
-                if (request != null) {
-                    // Send request to server
-                    out.write(request + END_OF_LINE);
-                    out.flush();
-                }
+                            request = ClientCommand.MODIFY + " " + oldName + " " + newName;
+                            break;
+                        }
+                        case MANAGE -> {
+                            String name = userInputParts[1];
+                            int quant = Integer.parseInt(userInputParts[2]);
+
+                            request = ClientCommand.MANAGE + " " + name + " " + quant;
+                            break;
+                        }
+                        case RESERVE -> {
+                            String name = userInputParts[1];
+                            int quant = Integer.parseInt(userInputParts[2]);
+
+                            request = ClientCommand.RESERVE + " " + name + " " + quant;
+                            break;
+                        }
+                        case QUIT -> {
+                            socket.close();
+                            continue;
+                        }
+                        case HELP -> {
+                            help();
+                            continue;
+                        }
+                    }
+
+                    if (request != null) {
+                        // Send request to server
+                        out.write(request + END_OF_LINE);
+                        out.flush();
+                    }
                 } catch (Exception e) {
-                    System.out.println("Invalid command. Use HELP command to see all available commands and try again.");
+                    System.out
+                            .println("Invalid command. Use HELP command to see all available commands and try again.");
                     continue;
                 }
 
@@ -148,7 +162,7 @@ public class Client implements Runnable {
                 }
 
                 // Split response to parse message (also known as command)
-                String[] serverResponseParts = serverResponse.split(" ", 2 );
+                String[] serverResponseParts = serverResponse.split(" ", 2);
 
                 ServerCommand message = null;
                 try {
@@ -160,7 +174,8 @@ public class Client implements Runnable {
                 // Handle response from server
                 switch (message) {
                     case OK -> {
-                        // As we know from the server implementation, the message is always the second part
+                        // As we know from the server implementation, the message is always the second
+                        // part
                         String response = serverResponseParts[0];
                         System.out.println(response);
                         break;
@@ -170,36 +185,40 @@ public class Client implements Runnable {
                         System.out.println(serverResponse.substring(7));
                     }
 
-
                     case PRINT -> {
-                        String[] items =  serverResponse.substring(5).split(",");
+                        String[] items = serverResponse.substring(5).split(",");
 
-                        for(String item : items){
+                        for (String item : items) {
                             System.out.println(item);
                         }
                     }
                     case null, default ->
                         System.out.println("Invalid/unknown command sent by server, ignore.");
-                    }
                 }
-
-                System.out.println("[Client] Closing connection and quitting...");
-
-            } catch (Exception e) {    
-                System.out.println("[Client] Exception: " + e);
             }
+
+            System.out.println("[Client] Closing connection and quitting...");
+
+        } catch (Exception e) {
+            System.out.println("[Client] Exception: " + e);
+        }
     }
 
-  private static void help() {
-    System.out.println("Usage:");
-    System.out.println("  " + ClientCommand.ADD + "<item> [amount] - Adds a new item to the inventory.");
-    System.out.println("  " + ClientCommand.REMOVE + "<item> - Removes an item from the inventory.");
-    System.out.println("  " + ClientCommand.LIST + " [item] - Lists one or all items in the inventory");
-    System.out.println("  " + ClientCommand.MODIFY + "<oldName> <newName> - Changes the name of an item in the inventory.");
-    System.out.println("  " + ClientCommand.MANAGE + "<item> <amount> - changes the ammount of an item in inventory.");
-    System.out.println("  " + ClientCommand.RESERVE + "<item> <amount> - Reserves an item in inventory.");
-    System.out.println("  " + ClientCommand.QUIT + " - Close the connection to the server.");
-    System.out.println("  " + ClientCommand.HELP + " - Display this help message.");
-    System.out.println("Note: [args] are optionals.");
-  }
+    /**
+     * help function that displays the valid commands to the user in terminal
+     */
+    private static void help() {
+        System.out.println("Usage:");
+        System.out.println("  " + ClientCommand.ADD + "<item> [amount] - Adds a new item to the inventory.");
+        System.out.println("  " + ClientCommand.REMOVE + "<item> - Removes an item from the inventory.");
+        System.out.println("  " + ClientCommand.LIST + " [item] - Lists one or all items in the inventory");
+        System.out.println(
+                "  " + ClientCommand.MODIFY + "<oldName> <newName> - Changes the name of an item in the inventory.");
+        System.out.println(
+                "  " + ClientCommand.MANAGE + "<item> <amount> - changes the ammount of an item in inventory.");
+        System.out.println("  " + ClientCommand.RESERVE + "<item> <amount> - Reserves an item in inventory.");
+        System.out.println("  " + ClientCommand.QUIT + " - Close the connection to the server.");
+        System.out.println("  " + ClientCommand.HELP + " - Display this help message.");
+        System.out.println("Note: [args] are optionals.");
+    }
 }

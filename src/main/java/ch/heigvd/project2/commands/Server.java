@@ -9,13 +9,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.Map;
 
-
+/**
+ * Backend implementation of the Warehouse Manager
+ */
 @CommandLine.Command(name = "Server", description = "Starts server side application.")
 public class Server implements Runnable {
 
-    @CommandLine.ParentCommand protected Root parent;
+    @CommandLine.ParentCommand
+    protected Root parent;
 
     // Constants for messages
     public enum ClientCommand {
@@ -26,22 +28,28 @@ public class Server implements Runnable {
         MANAGE,
         RESERVE
     }
+
+    // end of line character
     public static String END_OF_LINE = "\n";
 
     // Make these static so they're shared across all client threads
-    protected static ConcurrentHashMap<String,Integer> db = new ConcurrentHashMap<>();
-    protected static ConcurrentHashMap<String,Integer> reserved = new ConcurrentHashMap<>();
+    protected static ConcurrentHashMap<String, Integer> db = new ConcurrentHashMap<>();
+    protected static ConcurrentHashMap<String, Integer> reserved = new ConcurrentHashMap<>();
 
+    // constant for responces
     public enum ServerCommand {
         OK,
         INVALID,
         PRINT
     }
 
-    public void run(){
+    /**
+     * function that accepts clients in a loop
+     */
+    public void run() {
         try (ServerSocket serverSocket = new ServerSocket(parent.getPort());
-             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            System.out.println("[SERVER] Listening on port " + parent.getPort() );
+                ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            System.out.println("[SERVER] Listening on port " + parent.getPort());
 
             while (!serverSocket.isClosed()) {
                 Socket clientSocket = serverSocket.accept();
@@ -54,21 +62,32 @@ public class Server implements Runnable {
         System.out.println("Server started on port: " + parent.getPort());
     }
 
+    /**
+     * Class to handle clients concurrently
+     */
     class ClientHandler implements Runnable {
         private final Socket socket;
 
+        /**
+         * constructor for client handler
+         * 
+         * @param socket Socket, socket used for this connection
+         */
         public ClientHandler(Socket socket) {
             this.socket = socket;
         }
 
+        /**
+         * function that handles the client
+         */
         @Override
         public void run() {
             try (socket; // Allow try-with-resources to close socket
-                 Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
-                 BufferedReader in = new BufferedReader(reader);
-                 Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
-                 BufferedWriter out = new BufferedWriter(writer)) {
-                
+                    Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
+                    BufferedReader in = new BufferedReader(reader);
+                    Writer writer = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
+                    BufferedWriter out = new BufferedWriter(writer)) {
+
                 System.out.println(
                         "[SERVER] New client connected from "
                                 + socket.getInetAddress().getHostAddress()
@@ -101,24 +120,26 @@ public class Server implements Runnable {
                     // Handle request from client
                     switch (command) {
                         case ADD -> {
-                            if(clientRequestParts.length < 3){
+                            if (clientRequestParts.length < 3) {
                                 System.out.println(
-                                    "[SERVER] " + command + " command received without parameters. Replying with "
-                                    + ServerCommand.INVALID);
-                                response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
+                                        "[SERVER] " + command + " command received without parameters. Replying with "
+                                                + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID
+                                        + " Missing <item> or <amount> parameter. Please try again.";
                                 break;
                             }
 
                             response = add(clientRequestParts[1], Integer.parseInt(clientRequestParts[2]));
-                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            System.out.println("[SERVER] " + getUID(socket) + " used " + command + " command");
                             break;
                         }
 
                         case REMOVE -> {
-                            if(clientRequestParts.length < 2){
+                            if (clientRequestParts.length < 2) {
                                 System.out.println(
-                                    "[SERVER] " + command + " command received without <item> parameter. Replying with "
-                                    + ServerCommand.INVALID);
+                                        "[SERVER] " + command
+                                                + " command received without <item> parameter. Replying with "
+                                                + ServerCommand.INVALID);
                                 response = ServerCommand.INVALID + " Missing <item> parameter. Please try again.";
                                 break;
                             }
@@ -126,40 +147,44 @@ public class Server implements Runnable {
                             String item = clientRequestParts[1];
                             response = remove(item);
 
-                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            System.out.println("[SERVER] " + getUID(socket) + " used " + command + " command");
                             break;
                         }
 
                         case LIST -> {
-                            if(clientRequestParts.length < 2){
+                            if (clientRequestParts.length < 2) {
                                 response = ServerCommand.INVALID + " Missing parameter. Please try again.";
                                 break;
                             }
                             response = list(clientRequestParts[1]);
-                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            System.out.println("[SERVER] " + getUID(socket) + " used " + command + " command");
                             break;
                         }
 
                         case MODIFY -> {
-                            if(clientRequestParts.length < 3){
+                            if (clientRequestParts.length < 3) {
                                 System.out.println(
-                                    "[SERVER] " + command + " command received without <oldName> or <newName> parameters. Replying with "
-                                    + ServerCommand.INVALID);
-                                response = ServerCommand.INVALID + " Missing <oldname> or <newName> parameter. Please try again.";
+                                        "[SERVER] " + command
+                                                + " command received without <oldName> or <newName> parameters. Replying with "
+                                                + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID
+                                        + " Missing <oldname> or <newName> parameter. Please try again.";
                                 break;
                             }
 
                             response = modify(clientRequestParts[1], clientRequestParts[2]);
-                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            System.out.println("[SERVER] " + getUID(socket) + " used " + command + " command");
                             break;
                         }
 
                         case MANAGE -> {
-                            if(clientRequestParts.length < 3){
+                            if (clientRequestParts.length < 3) {
                                 System.out.println(
-                                    "[SERVER] " + command + " command received without <item> or <amount> parameter. Replying with "
-                                    + ServerCommand.INVALID);
-                                response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
+                                        "[SERVER] " + command
+                                                + " command received without <item> or <amount> parameter. Replying with "
+                                                + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID
+                                        + " Missing <item> or <amount> parameter. Please try again.";
                                 break;
                             }
 
@@ -173,16 +198,18 @@ public class Server implements Runnable {
                             }
 
                             response = manage(item, amount);
-                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            System.out.println("[SERVER] " + getUID(socket) + " used " + command + " command");
                             break;
                         }
 
                         case RESERVE -> {
-                            if(clientRequestParts.length < 3){
+                            if (clientRequestParts.length < 3) {
                                 System.out.println(
-                                    "[SERVER] " + command + " command received without <item> or <amount> parameter. Replying with "
-                                    + ServerCommand.INVALID);
-                                response = ServerCommand.INVALID + " Missing <item> or <amount> parameter. Please try again.";
+                                        "[SERVER] " + command
+                                                + " command received without <item> or <amount> parameter. Replying with "
+                                                + ServerCommand.INVALID);
+                                response = ServerCommand.INVALID
+                                        + " Missing <item> or <amount> parameter. Please try again.";
                                 break;
                             }
 
@@ -201,13 +228,13 @@ public class Server implements Runnable {
 
                             response = reserve(item, amount);
 
-                            System.out.println("[SERVER] " + getUID(socket) + " used "+ command + " command");
+                            System.out.println("[SERVER] " + getUID(socket) + " used " + command + " command");
                             break;
-                        } 
+                        }
 
                         case null, default -> {
                             System.out.println(
-                                    "[SERVER] Unknown command sent by "+ getUID(socket) +", reply with "
+                                    "[SERVER] Unknown command sent by " + getUID(socket) + ", reply with "
                                             + ServerCommand.INVALID);
                             response = ServerCommand.INVALID + " Unknown command. Please try again.";
                         }
@@ -220,56 +247,82 @@ public class Server implements Runnable {
 
                 System.out.println("[SERVER] Closing connection " + getUID(socket));
             } catch (IOException e) {
-                System.out.println("[SERVER] IO exception with user: "+ getUID(socket) + " " + e);
+                System.out.println("[SERVER] IO exception with user: " + getUID(socket) + " " + e);
             }
         }
     }
 
+    /**
+     * add a new item to db
+     * 
+     * @param name   String, name of the item to add
+     * @param amount int, ammount to add
+     * @return String, command status
+     */
     private String add(String name, int amount) {
-        if(db.containsKey(name)){
-            return (ServerCommand.INVALID + " item " + name + " already exists in inventory ") ;
+        name = name.toUpperCase();
+        if (db.containsKey(name)) {
+            return (ServerCommand.INVALID + " item " + name + " already exists in inventory ");
         }
 
-        if(amount < 0){
+        if (amount < 0) {
             return ServerCommand.INVALID + " <amount> must be a positive or null integer.";
         }
 
         db.put(name, amount);
+        reserved.put(name, 0);
         return ServerCommand.OK.name();
     }
 
     private String remove(String name) {
-        if(!db.containsKey(name)){
-            return ServerCommand.INVALID + " item " + name + " does not exist in inventory " ;
+        name = name.toUpperCase();
+        if (!db.containsKey(name)) {
+            return ServerCommand.INVALID + " item " + name + " does not exist in inventory ";
         }
         db.remove(name);
         return ServerCommand.OK.name();
     }
 
-    private String list(String name){
-        if(db.isEmpty())
-            return  ServerCommand.INVALID.name() + " the inventory is empty";
+    /**
+     * lists items contained in db
+     * 
+     * @param name String, item to list or "all" to list everything
+     * @return String, command status
+     */
+    private String list(String name) {
+        name = name.toUpperCase();
+        if (db.isEmpty())
+            return ServerCommand.INVALID.name() + " the inventory is empty";
 
-        if(name.equals("all")){
+        if (name.equals("ALL")) {
             StringBuilder sb = new StringBuilder(" ,Listing:");
-            for(Map.Entry<String, Integer> e : db.entrySet() ){
+            for (ConcurrentHashMap.Entry<String, Integer> e : db.entrySet()) {
                 sb.append(printItem(e.getKey()));
             }
             return ServerCommand.PRINT.name() + sb;
         } else {
-            if(!db.containsKey(name)){
+            if (!db.containsKey(name)) {
                 return ServerCommand.INVALID.name() + " item " + name + " does not exist";
             } else {
-                return ServerCommand.PRINT.name() +" "+ printItem(name);
+                return ServerCommand.PRINT.name() + " " + printItem(name);
             }
         }
     }
 
-    private String modify(String oldName, String newName){
-        if(!db.containsKey(oldName)) {
+    /**
+     * modifies the name of an item
+     * 
+     * @param oldName String, old name for item
+     * @param newName String, new name for item
+     * @return String, command status
+     */
+    private String modify(String oldName, String newName) {
+        newName = newName.toUpperCase();
+        oldName = oldName.toUpperCase();
+        if (!db.containsKey(oldName)) {
             return ServerCommand.INVALID + " the Item " + oldName + " does not exists.";
 
-        } else if(db.containsKey(newName)){
+        } else if (db.containsKey(newName)) {
             return ServerCommand.INVALID + " the Item " + newName + " already exist.";
 
         }
@@ -277,53 +330,85 @@ public class Server implements Runnable {
         int amount = db.remove(oldName);
         db.put(newName, amount);
 
+        amount = reserved.remove(oldName);
+        reserved.put(newName, amount);
+
         return ServerCommand.OK.name();
     }
 
-    private String manage(String name, int amount){
-        //check if item exists
-        if(!db.containsKey(name))
-            return  ServerCommand.INVALID + " item " + name + " does not exist.";
+    /**
+     * manages the ammount of item in db
+     * 
+     * @param name   String, item to manage
+     * @param amount int, new ammount of this item
+     * @return String, command status
+     */
+    private String manage(String name, int amount) {
+        name = name.toUpperCase();
+        // check if item exists
+        if (!db.containsKey(name))
+            return ServerCommand.INVALID + " item " + name + " does not exist.";
 
-        if(amount < 0){
+        if (amount < 0) {
             return ServerCommand.INVALID.name() + " <amount> must be a positive or null integer.";
         }
-        //replaces old value with new one
+        // replaces old value with new one
         db.put(name, amount);
         return ServerCommand.OK.name();
     }
 
-    private String reserve(String name, int amount){
-        //verify if item exists in inventory
-        if(!db.containsKey(name)){
+    /**
+     * reserves an ammount of item in internal db
+     * 
+     * @param name   String, name of the item
+     * @param amount int, ammount to reserve
+     * @return String, command status
+     */
+    private String reserve(String name, int amount) {
+        name = name.toUpperCase();
+        // verify if item exists in inventory
+        if (!db.containsKey(name)) {
             return (ServerCommand.INVALID + " item " + name + " does not exist.");
-        }else if(db.get(name) < amount){
+        } else if (db.get(name) < amount) {
             return (ServerCommand.INVALID + " not enough " + name + " in the warehouse.");
         }
 
-        if(amount < 0){
+        if (amount < 0) {
             return ServerCommand.INVALID.name() + " <amount> must be a positive integer.";
         }
 
-        if(amount > db.get(name)){
+        if (amount > db.get(name)) {
             return ServerCommand.INVALID + " cannot reserve more item than available";
         }
-        //remove from inventory
-        manage(name, db.get(name)-amount);
+        // remove from inventory
+        manage(name, db.get(name) - amount);
 
-        //add to list of reserved Items
+        // add to list of reserved Items
         int existing = reserved.getOrDefault(name, 0);
-        reserved.put(name, existing+amount);
+        reserved.put(name, existing + amount);
 
         return ServerCommand.OK.name();
     }
 
-    private String printItem(String name){
+    /**
+     * concatenates the informations about an item in db
+     * 
+     * @param name String, name of the item
+     * @return String, informations stored about the item
+     */
+    private String printItem(String name) {
+        name = name.toUpperCase();
         return " ,Item:" + name + ",Available:" + db.get(name)
-            + ",Reserved:" + reserved.getOrDefault(name, 0);
+                + ",Reserved:" + reserved.getOrDefault(name, 0);
     }
 
-    private String getUID(Socket s){
+    /**
+     * defines an uid for a client based on his ip and used port
+     * 
+     * @param s Socket, socket used with this client
+     * @return String, 5 char uid
+     */
+    private String getUID(Socket s) {
         try {
             String input = s.getInetAddress().getHostAddress() + s.getPort();
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
@@ -338,7 +423,4 @@ public class Server implements Runnable {
         }
     }
 
-
 }
-
-
