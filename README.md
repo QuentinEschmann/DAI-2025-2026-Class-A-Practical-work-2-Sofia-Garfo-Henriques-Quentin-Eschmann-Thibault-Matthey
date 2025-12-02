@@ -20,6 +20,7 @@ This repository for the practical work 2 for the DAI course.
         - [Reserve Item ](#reserve-item-number)
         - [Invalid Command](#invalid-command)
     - [Usage Example](#usage-example)
+- [Contributing](#contributing)
 - [Sources](#sources)
 
 <br>
@@ -38,9 +39,27 @@ This project has been made by:
 
 ## Installation and Usage
 
-## Deploy using Docker:
+### Deploy using Docker:
 
 This project is available via GitHub Container Registry. The only requirement is having Docker installed on your system.
+
+To pull the image:
+```bash
+# Pull image from Container Registry 
+docker pull ghcr.io/aihxpos111/warehouse:latest
+```
+
+To run the application:
+```bash
+# Create Network
+docker docker network create mynet
+
+# Open Server Connection
+docker run --rm -it --name server --network=mynet -p 7580:7580 ghcr.io/aihxpos111/warehouse:latest Server
+
+#Open Client Connection
+docker run --rm -it --network=mynet ghcr.io/aihxpos111/warehouse:latest --host server Client
+````
 
 ###  Building and Running Locally
 
@@ -174,6 +193,26 @@ sequenceDiagram
 
 
 ```
+## Contributing
+
+First, tag the image:
+
+```bash
+docker tag warehouse ghcr.io/<username>/warehouse:latest
+```
+
+Then , you'll need to log in to GitHub, we advise to do so using a personal access token , for more information please visit : [Working with the Container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+```bash
+docker login ghcr.io -u <username>
+```
+
+Now you can push your version to the GitHub Container Registry using the following command:
+```bash
+docker push ghcr.io/<username>/warehouse:lastest
+```
+
+
+
 
 ## Sources
 
