@@ -227,7 +227,7 @@ public class Server implements Runnable {
 
     private String add(String name, int amount) {
         if(db.containsKey(name)){
-            return ServerCommand.INVALID + " item " + name + " already exists in inventory " ;
+            return (ServerCommand.INVALID + " item " + name + " already exists in inventory ") ;
         }
 
         if(amount < 0){
@@ -260,16 +260,18 @@ public class Server implements Runnable {
             if(!db.containsKey(name)){
                 return ServerCommand.INVALID.name() + " item " + name + " does not exist";
             } else {
-                return ServerCommand.PRINT.name() + printItem(name);
+                return ServerCommand.PRINT.name() +" "+ printItem(name);
             }
         }
     }
 
     private String modify(String oldName, String newName){
-        if(db.containsKey(newName)) {
-            return ServerCommand.INVALID.name() + "the Item " + newName + " already exist.";
-        } else if(!db.containsKey(oldName)){
-            return ServerCommand.INVALID.name() + "the Item " + oldName + " does not exists.";
+        if(!db.containsKey(oldName)) {
+            return ServerCommand.INVALID + " the Item " + oldName + " does not exists.";
+
+        } else if(db.containsKey(newName)){
+            return ServerCommand.INVALID + " the Item " + newName + " already exist.";
+
         }
 
         int amount = db.remove(oldName);
@@ -281,7 +283,7 @@ public class Server implements Runnable {
     private String manage(String name, int amount){
         //check if item exists
         if(!db.containsKey(name))
-            return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
+            return  ServerCommand.INVALID + " item " + name + " does not exist.";
 
         if(amount < 0){
             return ServerCommand.INVALID.name() + " <amount> must be a positive or null integer.";
@@ -294,7 +296,9 @@ public class Server implements Runnable {
     private String reserve(String name, int amount){
         //verify if item exists in inventory
         if(!db.containsKey(name)){
-            return  ServerCommand.INVALID.name() + "item " + name + " does not exist.";
+            return (ServerCommand.INVALID + " item " + name + " does not exist.");
+        }else if(db.get(name) < amount){
+            return (ServerCommand.INVALID + " not enough " + name + " in the warehouse.");
         }
 
         if(amount < 0){

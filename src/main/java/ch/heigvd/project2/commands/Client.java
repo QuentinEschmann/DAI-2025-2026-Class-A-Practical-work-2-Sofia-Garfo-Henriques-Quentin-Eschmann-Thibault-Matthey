@@ -68,7 +68,6 @@ public class Client implements Runnable {
                 String[] userInputParts = userInput.split(" ");//, 4);
 
                 ClientCommand command = ClientCommand.valueOf(userInputParts[0].toUpperCase());
-
                 // Prepare request
                 String request = null;
 
@@ -142,7 +141,6 @@ public class Client implements Runnable {
 
                 // Read response from server and parse it
                 String serverResponse = in.readLine();
-
                 // If serverResponse is null, the server has disconnected
                 if (serverResponse == null) {
                     socket.close();
@@ -150,11 +148,11 @@ public class Client implements Runnable {
                 }
 
                 // Split response to parse message (also known as command)
-                String[] serverResponseParts = serverResponse.split(" ");
+                String[] serverResponseParts = serverResponse.split(" ", 2 );
 
                 ServerCommand message = null;
                 try {
-                    message = ServerCommand.valueOf(serverResponseParts[0]);
+                    message = ServerCommand.valueOf(serverResponseParts[0].toUpperCase());
                 } catch (IllegalArgumentException e) {
                     // Do nothing
                 }
