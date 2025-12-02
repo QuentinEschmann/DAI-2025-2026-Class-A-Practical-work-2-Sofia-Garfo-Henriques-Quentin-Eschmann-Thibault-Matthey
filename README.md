@@ -30,6 +30,8 @@ This repository for the practical work 2 for the DAI course.
 A client-server inventory management system enabling multiple users to concurrently view and modify a shared warehouse database over a network.
 The server maintains inventory data temporarily using ConcurrentHashMap structures for thread-safe, concurrent access.
 
+This application could be a practical for solution for ephemeral inventory management at short-term events conferences, festivals, or pop-ups where data only last for the duration of said activity.
+
 ## Group Members
 
 This project has been made by:
@@ -87,7 +89,7 @@ This protocol is used for communicating with the warehouse database. It is creat
 ### Transport protocol 
 
 The protocol is used for any kind of communication with the inventory of the warehouse, he is set to be used on port 7580. <br>
-Actions are stictly limited by the list of the commands given to you in the next part.<br>
+Actions are strictly limited by the list of the commands given to you in the next part.<br>
 The communication is made with REPL and the actions are treated and saved as text.<br>
 The client has to initiate a connection with the server, the communication only start when the server has accepted the connection. <br>
 If one of the instructions from the client is impossible or not following the expected format the server will respond with an error message. 
@@ -211,9 +213,6 @@ Now you can push your version to the GitHub Container Registry using the followi
 docker push ghcr.io/<username>/warehouse:lastest
 ```
 
-
-
-
 ## Sources
 
 - GitHub Copilot : writing documentation
@@ -221,3 +220,4 @@ docker push ghcr.io/<username>/warehouse:lastest
 - [GeeksforGeeks](https://www.geeksforgeeks.org) : HashMap implementation and code examples.
 - [StackOverflow](https://stackoverflow.com) : Docker utilisation and code examples.
 - [Docker Docs](https://docs.docker.com/) : Docker utilisation
+- [DAI Course](https://github.com/heig-vd-dai-course/heig-vd-dai-course) : Code Examples and course material.
