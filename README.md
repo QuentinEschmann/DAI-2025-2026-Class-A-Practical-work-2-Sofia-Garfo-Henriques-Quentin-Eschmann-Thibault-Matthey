@@ -54,7 +54,7 @@ docker pull ghcr.io/aihxpos111/warehouse:latest
 To run the application:
 ```bash
 # Create Network
-docker docker network create mynet
+docker network create mynet
 
 # Open Server Connection
 docker run --rm -it --name server --network=mynet -p 7580:7580 ghcr.io/aihxpos111/warehouse:latest Server
@@ -197,8 +197,10 @@ sequenceDiagram
 ```
 ## Contributing
 
-First, tag the image:
+If you wish to contribute please contact one of the team members and request writing access for the GitHub Container Registry. Once access has been granted you can tag you image and update your improved version!
 
+
+First, tag the image:
 ```bash
 docker tag warehouse ghcr.io/<username>/warehouse:latest
 ```
@@ -210,7 +212,7 @@ docker login ghcr.io -u <username>
 
 Now you can push your version to the GitHub Container Registry using the following command:
 ```bash
-docker push ghcr.io/<username>/warehouse:lastest
+docker push ghcr.io/aihxpos/warehouse:lastest
 ```
 
 ## Sources
