@@ -270,6 +270,7 @@ public class Server implements Runnable {
         }
 
         db.put(name, amount);
+        reserved.put(name, 0);
         return ServerCommand.OK.name();
     }
 
