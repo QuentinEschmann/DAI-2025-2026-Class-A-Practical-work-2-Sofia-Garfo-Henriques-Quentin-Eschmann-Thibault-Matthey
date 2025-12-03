@@ -30,7 +30,7 @@ This repository for the practical work 2 for the DAI course.
 A client-server inventory management system enabling multiple users to concurrently view and modify a shared warehouse database over a network.
 The server maintains inventory data temporarily using ConcurrentHashMap structures for thread-safe, concurrent access.
 
-This application could be a practical for solution for ephemeral inventory management at short-term events conferences, festivals, or pop-ups where data only last for the duration of said activity.
+This application could be a practical solution for ephemeral inventory management at short-term events conferences, festivals, or pop-ups where data only last for the duration of said activity.
 
 ## Group Members
 
@@ -51,17 +51,38 @@ To pull the image:
 docker pull ghcr.io/aihxpos111/warehouse:latest
 ```
 
-To run the application:
+To run the  Client and Server locally on the same machine:
+
 ```bash
 # Create Network
 docker network create mynet
+```
 
+The following commands will start the server and client in separate containers, connected via the mynet network.
+
+```bash
 # Open Server Connection
 docker run --rm -it --name server --network=mynet -p 7580:7580 ghcr.io/aihxpos111/warehouse:latest Server
 
 #Open Client Connection
 docker run --rm -it --network=mynet ghcr.io/aihxpos111/warehouse:latest --host server Client
 ````
+
+To run the client on a machine different from the server:
+
+On the server machine: 
+
+```bash
+docker run --rm -d -p 7580:7580 ghcr.io/aihxpos111/warehouse:latest Server
+```
+
+On the client machine:
+
+```bash
+#Specify the Server's IP address
+docker run --rm -it ghcr.io/aihxpos111/warehouse:latest --host <SERVER_IP_ADDRESS> Client
+```
+
 
 ###  Building and Running Locally
 
@@ -73,11 +94,21 @@ To run the project locally clone this repository and use the following command i
 
 To run this project locally, the arguments should be given like this : <br>
 ```bash
-java -jar target/project3-1.0-SNAPSHOT.jar <PORT> [COMMAND] {--host <host>}
+java -jar target/project3-1.0-SNAPSHOT.jar  [-hV] [--host=<host>] [-p=<port>] [COMMAND]
 ```
-- \<PORT> references the port on which the application will be run.
-- [COMMAND] gives the information if we want to run a client or a server app.
-- {--host \<host>} is a client specific argument that specifies the server to which connect.
+
+Arguments:
+
+-[-hV]: --help to display the help message
+        --version to display the version information
+-[--host=<host>]: Specify the IP of the server you want to connect to ( default : localhost )
+-[--port=<port>]: Specify the port to be used for communication ( default : 7580 )
+-[COMMAND]: 
+    - Server: Starts server side application
+    - Client: Starts client side application
+    
+
+
 
 
 ## Protocol documentation
@@ -140,7 +171,7 @@ Answer : OK <br>
 Error : INVALID Missing [Item] or [Number] parameter. Please try again. - Missing a parameters.<br>
 Error : INVALID [Number] must be a positive integer or zero. - The number is not a positive number.<br>
 Error : INVALID [Number] is not a valid integer. - The number is not valid.<br>
-Error : INVALID [Number] is superior to actual stock. The number is superior to the ammount in the database.
+Error : INVALID [Number] is superior to actual stock. The number is superior to the amount in the database.
 
 #### Invalid Command 
 
@@ -210,10 +241,12 @@ Then , you'll need to log in to GitHub, we advise to do so using a personal acce
 docker login ghcr.io -u <username>
 ```
 
-Now you can push your version to the GitHub Container Registry using the following command:
+Now you can push your version to the original GitHub Container Registry using the following command:
 ```bash
-docker push ghcr.io/aihxpos/warehouse:lastest
+docker push ghcr.io/aihxpos111/warehouse:lastest
 ```
+
+To push it to your own Registry simply replace "aihxpos111" by your own username.
 
 ## Sources
 
