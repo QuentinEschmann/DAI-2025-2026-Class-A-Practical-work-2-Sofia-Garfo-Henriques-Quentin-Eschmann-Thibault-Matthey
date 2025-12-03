@@ -62,11 +62,13 @@ The following commands will start the server and client in separate containers, 
 
 ```bash
 # Open Server Connection
-docker run --rm -it --name server --network=mynet -p 7580:7580 ghcr.io/aihxpos111/warehouse:latest Server
+docker run --rm -it --name server --network=mynet -p <port>:<port> ghcr.io/aihxpos111/warehouse:latest Server
 
 #Open Client Connection
-docker run --rm -it --network=mynet ghcr.io/aihxpos111/warehouse:latest --host server Client
+docker run --rm -it --network=mynet ghcr.io/aihxpos111/warehouse:latest --host server --port <PORT> Client
 ````
+
+For both commands, if --port isn't specify it will be set to 7580 by default
 
 ---
 
@@ -80,9 +82,9 @@ docker run --rm -d -p 7580:7580 ghcr.io/aihxpos111/warehouse:latest Server
 Then on the client machine:
 ```bash
 #Specify the Server's IP address
-docker run --rm -it ghcr.io/aihxpos111/warehouse:latest --host <SERVER_IP_ADDRESS> Client
+docker run --rm -it ghcr.io/aihxpos111/warehouse:latest --host <SERVER_IP_ADDRESS> --port <PORT> Client
 ```
-
+If --port isn't specified, it will be set by default to 7580.
 
 ###  Building and Running Locally
 
@@ -243,7 +245,7 @@ docker login ghcr.io -u <username>
 
 Now you can push your version to the original GitHub Container Registry using the following command:
 ```bash
-docker push ghcr.io/aihxpos111/warehouse:lastest
+docker push ghcr.io/aihxpos111/warehouse:latest
 ```
 
 To push it to your own Registry simply replace "aihxpos111" by your own username.
