@@ -51,7 +51,7 @@ To pull the image:
 docker pull ghcr.io/aihxpos111/warehouse:latest
 ```
 
-To run the  Client and Server locally on the same machine:
+#### To run the Client and Server locally on the same machines:
 
 ```bash
 # Create Network
@@ -68,16 +68,16 @@ docker run --rm -it --name server --network=mynet -p 7580:7580 ghcr.io/aihxpos11
 docker run --rm -it --network=mynet ghcr.io/aihxpos111/warehouse:latest --host server Client
 ````
 
-To run the client on a machine different from the server:
+---
 
-On the server machine: 
+#### To run the Client and Server on separate machines:
+On the server machine run the following commands.
 
 ```bash
 docker run --rm -d -p 7580:7580 ghcr.io/aihxpos111/warehouse:latest Server
 ```
 
-On the client machine:
-
+Then on the client machine:
 ```bash
 #Specify the Server's IP address
 docker run --rm -it ghcr.io/aihxpos111/warehouse:latest --host <SERVER_IP_ADDRESS> Client
@@ -99,11 +99,11 @@ java -jar target/project3-1.0-SNAPSHOT.jar  [-hV] [--host=<host>] [-p=<port>] [C
 
 Arguments:
 
--[-hV]: --help to display the help message
+- [-hV]: --help to display the help message
         --version to display the version information
--[--host=<host>]: Specify the IP of the server you want to connect to ( default : localhost )
--[--port=<port>]: Specify the port to be used for communication ( default : 7580 )
--[COMMAND]: 
+- [--host=<host>]: Specify the IP of the server you want to connect to ( default : localhost )
+- [--port=<port>]: Specify the port to be used for communication ( default : 7580 )
+- [COMMAND]: 
     - Server: Starts server side application
     - Client: Starts client side application
     
