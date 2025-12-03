@@ -62,13 +62,14 @@ The following commands will start the server and client in separate containers, 
 
 ```bash
 # Open Server Connection
-docker run --rm -it --name server --network=mynet -p <port>:<port> ghcr.io/aihxpos111/warehouse:latest Server
+docker run --rm -it --name server --network=mynet -p <port>:<port> ghcr.io/aihxpos111/warehouse:latest --port <PORT> Server
 
 #Open Client Connection
 docker run --rm -it --network=mynet ghcr.io/aihxpos111/warehouse:latest --host server --port <PORT> Client
 ````
 
-For both commands, if --port isn't specify it will be set to 7580 by default
+For both commands, if --port isn't specify it will be set to 7580 by default.
+For the client command, if --host isn't specified, it will be set to localhost by default.
 
 ---
 
@@ -76,7 +77,7 @@ For both commands, if --port isn't specify it will be set to 7580 by default
 On the server machine run the following commands.
 
 ```bash
-docker run --rm -d -p 7580:7580 ghcr.io/aihxpos111/warehouse:latest Server
+docker run --rm -d -p <port>:<port> ghcr.io/aihxpos111/warehouse:latest --port <PORT> Server
 ```
 
 Then on the client machine:
@@ -85,6 +86,7 @@ Then on the client machine:
 docker run --rm -it ghcr.io/aihxpos111/warehouse:latest --host <SERVER_IP_ADDRESS> --port <PORT> Client
 ```
 If --port isn't specified, it will be set by default to 7580.
+If --host isn't specified, it will be set to localhost by default.
 
 ###  Building and Running Locally
 
